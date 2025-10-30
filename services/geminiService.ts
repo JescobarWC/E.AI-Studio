@@ -31,11 +31,7 @@ export async function generateScene(
         throw new Error('Para la escena exterior se requiere una imagen de fondo.');
       }
       
-      if (backgroundFilename === 'fondo-final.jpg') {
-        prompt = 'Añade el coche de la segunda imagen a la primera imagen, que es la escena de fondo. El coche debe colocarse en la plataforma giratoria central. Haz que la imagen final parezca una fotografía real de alta calidad, con iluminación, sombras y reflejos realistas. Posiciona el coche de manera que su techo quede justo debajo del letrero "World Cars", y asegúrate de que el coche se vea grande y prominente en la escena. Si no puedes replicar perfectamente la matrícula de la foto original del coche, genera el coche sin matrícula. El letrero "World Cars" en la imagen de fondo debe permanecer como está en la imagen original; no lo cambies a un estilo de neón naranja.';
-      } else {
-        prompt = 'Añade el coche de la segunda imagen a la primera imagen, que es la escena de fondo. El coche debe colocarse en la plataforma giratoria central. Haz que la imagen final parezca una fotografía real de alta calidad, con iluminación, sombras y reflejos realistas. Posiciona el coche de manera que su techo quede justo debajo del letrero "World Cars", y asegúrate de que el coche se vea grande y prominente en la escena. Si no puedes replicar perfectamente la matrícula de la foto original del coche, genera el coche sin matrícula. Si alguna vez tienes que añadir un letrero o cartel de "World Cars", debe ser en estilo de neón naranja.';
-      }
+      prompt = 'Añade el coche de la segunda imagen a la primera imagen, que es la escena de fondo. El coche debe colocarse en la plataforma giratoria central. Haz que la imagen final parezca una fotografía real de alta calidad, con iluminación, sombras y reflejos realistas. Posiciona el coche de manera que su techo quede justo debajo del letrero "World Cars", y asegúrate de que el coche se vea grande y prominente en la escena. Si no puedes replicar perfectamente la matrícula de la foto original del coche, genera el coche sin matrícula. El letrero "World Cars" en la imagen de fondo debe permanecer como está en la imagen original; no lo modifiques ni cambies su estilo.';
 
       parts = [
         { text: prompt },
