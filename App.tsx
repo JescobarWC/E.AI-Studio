@@ -1,10 +1,12 @@
+
 import React, { useState, useCallback } from 'react';
 import { ImageUploader } from './components/ImageUploader';
 import { ResultDisplay } from './components/ResultDisplay';
-import { generateCarScene } from './services/geminiService';
+import { generateScene } from './services/geminiService';
 import { fileToBase64, urlToBase64 } from './utils/fileUtils';
 
 const App: React.FC = () => {
+  const [sceneType, setSceneType] = useState<'exterior' | 'interior'>('exterior');
   const [carFile, setCarFile] = useState<File | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   const [backgroundUrl, setBackgroundUrl] = useState<string>('');
@@ -36,7 +38,11 @@ const App: React.FC = () => {
   };
 
   const handleGenerate = async () => {
-    if (!carFile || (!backgroundFile && !backgroundUrl)) {
+    if (!carFile) {
+        setError('Por favor, sube una imagen del coche.');
+        return;
+    }
+    if (sceneType === 'exterior' && (!backgroundFile && !backgroundUrl)) {
       setError('Por favor, sube una imagen del coche y proporciona un fondo (archivo o URL).');
       return;
     }
@@ -48,28 +54,44 @@ const App: React.FC = () => {
 
     try {
       const carBase64 = await fileToBase64(carFile);
-      let backgroundBase64: string;
-      let backgroundMimeType: string;
+      let generatedImageBase64: string | null = null;
 
-      if (backgroundInputMethod === 'upload' && backgroundFile) {
-        backgroundBase64 = await fileToBase64(backgroundFile);
-        backgroundMimeType = backgroundFile.type;
-      } else if (backgroundInputMethod === 'url' && backgroundUrl) {
-        setLoadingMessage('Descargando imagen de fondo desde la URL...');
-        const urlData = await urlToBase64(backgroundUrl);
-        backgroundBase64 = urlData.base64;
-        backgroundMimeType = urlData.mimeType;
-      } else {
-        throw new Error("No se ha proporcionado una fuente de imagen de fondo válida.");
+      if (sceneType === 'exterior') {
+        let backgroundBase64: string;
+        let backgroundMimeType: string;
+        let backgroundFilename: string | undefined;
+
+        if (backgroundInputMethod === 'upload' && backgroundFile) {
+            backgroundBase64 = await fileToBase64(backgroundFile);
+            backgroundMimeType = backgroundFile.type;
+            backgroundFilename = backgroundFile.name;
+        } else if (backgroundInputMethod === 'url' && backgroundUrl) {
+            setLoadingMessage('Descargando imagen de fondo desde la URL...');
+            const urlData = await urlToBase64(backgroundUrl);
+            backgroundBase64 = urlData.base64;
+            backgroundMimeType = urlData.mimeType;
+        } else {
+            throw new Error("No se ha proporcionado una fuente de imagen de fondo válida.");
+        }
+        
+        setLoadingMessage('La IA está creando tu escena, esto puede tardar un momento...');
+        generatedImageBase64 = await generateScene(
+            'exterior',
+            carBase64,
+            carFile.type,
+            backgroundBase64,
+            backgroundMimeType,
+            backgroundFilename
+        );
+      } else { // Interior
+        setLoadingMessage('La IA está creando tu escena interior...');
+        generatedImageBase64 = await generateScene(
+          'interior',
+          carBase64,
+          carFile.type
+        );
       }
-      
-      setLoadingMessage('La IA está creando tu escena, esto puede tardar un momento...');
-      const generatedImageBase64 = await generateCarScene(
-        carBase64,
-        carFile.type,
-        backgroundBase64,
-        backgroundMimeType
-      );
+
 
       if (generatedImageBase64) {
         setResultImage(`data:image/jpeg;base64,${generatedImageBase64}`);
@@ -85,7 +107,9 @@ const App: React.FC = () => {
     }
   };
   
-  const isGenerateDisabled = isLoading || !carFile || (backgroundInputMethod === 'upload' && !backgroundFile) || (backgroundInputMethod === 'url' && !backgroundUrl);
+  const isExteriorFieldsMissing = sceneType === 'exterior' && ((backgroundInputMethod === 'upload' && !backgroundFile) || (backgroundInputMethod === 'url' && !backgroundUrl));
+  const isGenerateDisabled = isLoading || !carFile || isExteriorFieldsMissing;
+
 
   return (
     <div className="bg-gray-900 text-white min-h-screen font-sans">
@@ -95,7 +119,7 @@ const App: React.FC = () => {
             E•AI Studio
           </h1>
           <p className="text-center text-gray-400 mt-2">
-            Sube una foto de un coche y una de fondo, y deja que la IA cree una nueva escena realista.
+            Crea escenas fotorrealistas de tu coche, tanto exteriores como interiores, con el poder de la IA.
           </p>
         </div>
       </header>
@@ -104,51 +128,72 @@ const App: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-semibold mb-4 text-indigo-300">1. Sube tu Coche</h2>
-              <ImageUploader onImageUpload={handleCarUpload} label="Sube una imagen del coche" />
-            </div>
-            
-            <div>
-              <h2 className="text-2xl font-semibold mb-4 text-indigo-300">2. Elige la Escena de Fondo</h2>
-               <div className="flex mb-4 rounded-lg bg-gray-800 p-1">
+              <h2 className="text-2xl font-semibold mb-4 text-indigo-300">Tipo de Escena</h2>
+              <div className="flex mb-4 rounded-lg bg-gray-800 p-1">
                 <button
-                  onClick={() => setBackgroundInputMethod('upload')}
-                  className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${backgroundInputMethod === 'upload' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+                  onClick={() => setSceneType('exterior')}
+                  className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${sceneType === 'exterior' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
                 >
-                  Subir Archivo
+                  Exterior
                 </button>
                 <button
-                  onClick={() => setBackgroundInputMethod('url')}
-                  className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${backgroundInputMethod === 'url' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+                  onClick={() => setSceneType('interior')}
+                  className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${sceneType === 'interior' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
                 >
-                  Pegar URL
+                  Interior
                 </button>
               </div>
-
-              {backgroundInputMethod === 'upload' ? (
-                 <ImageUploader onImageUpload={handleBackgroundUpload} label="Sube una imagen de fondo" />
-              ) : (
-                <div className="h-64 flex flex-col justify-center items-center bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4">
-                    <label htmlFor="bg-url" className="text-gray-400 mb-2 font-semibold">URL de la imagen de fondo</label>
-                    <input
-                        id="bg-url"
-                        type="text"
-                        value={backgroundUrl}
-                        onChange={handleBackgroundUrlChange}
-                        placeholder="https://ejemplo.com/fondo.jpg"
-                        className="w-full bg-gray-900 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    />
-                     {backgroundUrl && <img src={backgroundUrl} alt="Previsualización de URL" className="mt-4 max-h-32 rounded-lg object-contain" onError={(e) => e.currentTarget.style.display='none'} />}
-                </div>
-              )}
             </div>
+
+            <div>
+              <h2 className="text-2xl font-semibold mb-4 text-indigo-300">1. Sube tu Imagen</h2>
+              <ImageUploader onImageUpload={handleCarUpload} label={sceneType === 'exterior' ? "Sube una imagen del coche" : "Sube una imagen del interior"} />
+            </div>
+            
+            {sceneType === 'exterior' && (
+              <div>
+                <h2 className="text-2xl font-semibold mb-4 text-indigo-300">2. Elige la Escena de Fondo</h2>
+                 <div className="flex mb-4 rounded-lg bg-gray-800 p-1">
+                  <button
+                    onClick={() => setBackgroundInputMethod('upload')}
+                    className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${backgroundInputMethod === 'upload' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+                  >
+                    Subir Archivo
+                  </button>
+                  <button
+                    onClick={() => setBackgroundInputMethod('url')}
+                    className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${backgroundInputMethod === 'url' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+                  >
+                    Pegar URL
+                  </button>
+                </div>
+
+                {backgroundInputMethod === 'upload' ? (
+                   <ImageUploader onImageUpload={handleBackgroundUpload} label="Sube una imagen de fondo" />
+                ) : (
+                  <div className="h-64 flex flex-col justify-center items-center bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4">
+                      <label htmlFor="bg-url" className="text-gray-400 mb-2 font-semibold">URL de la imagen de fondo</label>
+                      <input
+                          id="bg-url"
+                          type="text"
+                          value={backgroundUrl}
+                          onChange={handleBackgroundUrlChange}
+                          placeholder="https://ejemplo.com/fondo.jpg"
+                          className="w-full bg-gray-900 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                       {backgroundUrl && <img src={backgroundUrl} alt="Previsualización de URL" className="mt-4 max-h-32 rounded-lg object-contain" onError={(e) => e.currentTarget.style.display='none'} />}
+                  </div>
+                )}
+              </div>
+            )}
+
 
             <button
               onClick={handleGenerate}
               disabled={isGenerateDisabled}
               className="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all duration-300 disabled:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-400 flex items-center justify-center shadow-lg"
             >
-              {isLoading ? 'Generando...' : '3. Generar Escena'}
+              {isLoading ? 'Generando...' : `${sceneType === 'exterior' ? '3.' : '2.'} Generar Escena`}
             </button>
           </div>
 
