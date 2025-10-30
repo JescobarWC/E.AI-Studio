@@ -1,5 +1,7 @@
 {
   "name": "E•AI Studio",
   "description": "Una aplicación que utiliza IA para crear una escena fotorrealista combinando una foto de un coche con una imagen de fondo.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "camera"
+  ]
 }
