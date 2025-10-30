@@ -19,7 +19,7 @@ export async function generateCarScene(
     const ai = getAiClient();
     
     // Un prompt más simple y directo para mejorar la fiabilidad.
-    const prompt = 'Añade el coche de la segunda imagen a la primera imagen, que es la escena de fondo. El coche debe colocarse en la plataforma giratoria central. Haz que la imagen final parezca una fotografía real de alta calidad, con iluminación, sombras y reflejos realistas. Posiciona el coche de manera que su techo quede justo debajo del letrero "World Cars", y asegúrate de que el coche se vea grande y prominente en la escena. Si no puedes replicar perfectamente la matrícula de la foto original del coche, genera el coche sin matrícula.';
+    const prompt = 'Añade el coche de la segunda imagen a la primera imagen, que es la escena de fondo. El coche debe colocarse en la plataforma giratoria central. Haz que la imagen final parezca una fotografía real de alta calidad, con iluminación, sombras y reflejos realistas. Posiciona el coche de manera que su techo quede justo debajo del letrero "World Cars", y asegúrate de que el coche se vea grande y prominente en la escena. Si no puedes replicar perfectamente la matrícula de la foto original del coche, genera el coche sin matrícula. Si alguna vez tienes que añadir un letrero o cartel de "World Cars", debe ser en estilo de neón naranja.';
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
