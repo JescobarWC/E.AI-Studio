@@ -112,7 +112,7 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen font-sans">
+    <div className="bg-gray-900 text-white min-h-screen font-sans flex flex-col">
       <header className="py-6 bg-gray-800 shadow-lg">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl font-bold text-center text-indigo-400 tracking-wider">
@@ -124,7 +124,7 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-grow">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div className="space-y-8">
             <div>
@@ -208,6 +208,10 @@ const App: React.FC = () => {
           </div>
         </div>
       </main>
+      
+      <footer className="py-4 text-center text-gray-500 text-sm">
+        <p>E•AI Studio 2025 todos los derechos reservados, creado por Jose Ignacio Escobar Jiménez</p>
+      </footer>
     </div>
   );
 };
