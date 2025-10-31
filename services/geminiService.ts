@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Modality } from '@google/genai';
 
 // Helper function to initialize the AI client just-in-time.
@@ -17,7 +18,8 @@ export async function generateScene(
   backgroundMimeType?: string,
   backgroundFilename?: string,
   licensePlate?: string,
-  isExtremeClean?: boolean
+  isExtremeClean?: boolean,
+  kilometers?: string
 ): Promise<string | null> {
   try {
     const ai = getAiClient();
@@ -46,29 +48,14 @@ export async function generateScene(
         { inlineData: { data: carBase64, mimeType: carMimeType } },
       ];
     } else { // interior
-        if(backgroundBase64 && backgroundMimeType) {
-            prompt = `Tu tarea es una fusión de restauración digital y composición fotorrealista. Trabajarás con dos imágenes: la del interior de un coche y una imagen de fondo. El objetivo es crear una imagen final donde el interior del coche esté impecable y la imagen de fondo se vea a través de las ventanas de manera creíble.
+      let kilometerInstruction = `4.  **Regla Especial para Cuentakilómetros:** Si la imagen es un primer plano de un cuadro de instrumentos (cuentakilómetros), es absolutamente crucial que NO AÑADAS ninguna luz de aviso o testigo que no estuviera ya encendida en la foto original. Limpia la pantalla y el plástico, pero mantén las luces de aviso y el kilometraje exactamente como están en la imagen de referencia.`;
 
-            Sigue estas prioridades estrictamente:
-            
-            1.  **Restauración y Limpieza del Interior (MÁXIMA PRIORIDAD):**
-                *   Mantén el mismo ángulo de cámara, encuadre y composición de la foto original del interior.
-                *   **Limpieza Agresiva:** Elimina CUALQUIER objeto que no sea parte intrínseca del coche (papeles, chalecos, botellas, ambientadores, etc.).
-                *   **Restauración Digital:** Realiza una limpieza exhaustiva. Elimina todo rastro de polvo, manchas, huellas, suciedad y marcas de uso en TODAS las superficies (salpicadero, asientos, volante, alfombrillas, etc.). Los materiales deben lucir como nuevos, pero conservando su textura y forma original.
-            
-            2.  **Integración del Fondo y Realismo de la Luz (SEGUNDA PRIORIDAD):**
-                *   Reemplaza las vistas originales a través de las ventanillas y el parabrisas con la imagen de fondo proporcionada.
-                *   **Perspectiva y Escala:** Ajusta la perspectiva y la escala del fondo para que coincida con el punto de vista desde el interior del coche.
-                *   **Iluminación Realista:** Esto es CRÍTICO. La luz de la imagen de fondo debe influir de manera realista en el interior. Genera reflejos creíbles de la escena exterior en las superficies brillantes del interior (cromados, plásticos pulidos, etc.) y ajusta las sombras dentro del coche para que se correspondan con la dirección e intensidad de la luz del fondo. El resultado final debe ser indistinguible de una fotografía real.`;
+      if (kilometers && kilometers.trim() !== '') {
+          kilometerInstruction = `4.  **Regla Especial para Cuentakilómetros:** Si la imagen es un primer plano de un cuadro de instrumentos (cuentakilómetros), es OBLIGATORIO que el odómetro muestre exactamente este kilometraje: **"${kilometers} km"**. El número debe estar perfectamente integrado y ser fotorrealista. Además, es crucial que NO AÑADAS ninguna luz de aviso o testigo que no estuviera ya encendida en la foto original. Limpia el cuadro, pero renderiza el kilometraje especificado.`;
+      }
 
-            parts = [
-              { text: prompt },
-              { inlineData: { data: carBase64, mimeType: carMimeType } },
-              { inlineData: { data: backgroundBase64, mimeType: backgroundMimeType } },
-            ];
-        } else {
-            if (isExtremeClean) {
-                prompt = `Tu tarea es una **reconstrucción digital EXTREMA Y RADICAL** del interior de un coche. El objetivo es que la imagen final sea fotorrealista y transmita una sensación de **limpieza absoluta y de estar recién detallado de fábrica**. Es fundamental mantener el mismo ángulo de cámara, encuadre y composición que la foto original.
+      if (isExtremeClean) {
+          prompt = `Tu tarea es una **reconstrucción digital EXTREMA Y RADICAL** del interior de un coche. El objetivo es que la imagen final sea fotorrealista y transmita una sensación de **limpieza absoluta y de estar recién detallado de fábrica**. Es fundamental mantener el mismo ángulo de cámara, encuadre y composición que la foto original.
 
 Sigue estas reglas de forma OBLIGATORIA y con MÁXIMA PRIORIDAD:
 
@@ -78,21 +65,22 @@ Sigue estas reglas de forma OBLIGATORIA y con MÁXIMA PRIORIDAD:
     *   Te doy total libertad para **recrear y reconstruir por completo** las texturas de las partes sucias, en lugar de solo limpiarlas.
     *   **Regla Absoluta para el Suelo:** Independientemente de su color o material original (tela o goma), TODAS las alfombrillas y la moqueta del suelo del vehículo DEBEN ser recreadas en un **NEGRO PROFUNDO Y UNIFORME**. La textura debe ser impecable, como si estuviera recién aspirada y completamente nueva. No conserves el color original del suelo bajo ninguna circunstancia.
     *   **Plásticos, Vinilos y Resto de Gomas:** CUALQUIER otra pieza de estos materiales (salpicadero, paneles de puerta, consolas) que se vea marrón, grisácea o descolorida por la suciedad, **DEBE ser recreada en un color NEGRO INTENSO, profundo y con acabado de fábrica.** No dudes. Si parece sucio y debería ser negro, hazlo negro.
+${kilometerInstruction}
 
 El resultado final debe ser una imagen fotorrealista de un interior que luce mejor que nuevo. La reconstrucción total de alfombrillas a negro y la restauración del resto de plásticos es la clave del éxito.`;
-            } else {
-                prompt = `Tu tarea es realizar una restauración digital profesional de la imagen del interior de un coche. Es VITAL que mantengas el mismo ángulo de cámara, encuadre y composición de la foto original. Tu objetivo es presentar el interior en un estado impecable y listo para una revista.
+      } else {
+          prompt = `Tu tarea es realizar una restauración digital profesional de la imagen del interior de un coche. Es VITAL que mantengas el mismo ángulo de cámara, encuadre y composición de la foto original. Tu objetivo es presentar el interior en un estado impecable y listo para una revista.
 Los cambios deben ser exclusivamente los siguientes:
 1.  **Sustitución de Vistas Exteriores:** Borra completamente cualquier vista del exterior a través de las ventanillas y el parabrisas. Reemplaza estas áreas con un fondo de estudio profesional, completamente neutro y uniforme, de un color gris muy pálido o beige claro. El fondo debe ser liso, sin texturas, gradientes o efectos de desenfoque (bokeh).
 2.  **Limpieza de Desorden:** Elimina CUALQUIER objeto que no sea parte intrínseca del coche (papeles, chalecos, botellas, ambientadores, etc.).
 3.  **Limpieza Detallada:** Realiza una limpieza digital exhaustiva. Elimina todo rastro de polvo, manchas, huellas, suciedad y marcas de uso en TODAS las superficies (salpicadero, asientos, volante, alfombrillas, etc.). Los materiales deben lucir como nuevos, pero conservando su textura y forma original.
+${kilometerInstruction}
 El resultado final debe ser una imagen fotorrealista del mismo interior, pero en un estado de limpieza y conservación perfecto.`;
-            }
-            parts = [
-                { text: prompt },
-                { inlineData: { data: carBase64, mimeType: carMimeType } },
-            ];
-        }
+      }
+      parts = [
+          { text: prompt },
+          { inlineData: { data: carBase64, mimeType: carMimeType } },
+      ];
     }
     
     const response = await ai.models.generateContent({
