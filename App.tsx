@@ -273,6 +273,7 @@ const App: React.FC = () => {
               resultImage={resultImage}
               error={error}
               loadingMessage={loadingMessage}
+              kilometers={kilometers}
             />
           </div>
         </div>
