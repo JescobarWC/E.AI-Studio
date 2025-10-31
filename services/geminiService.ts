@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from '@google/genai';
 
 // Helper function to initialize the AI client just-in-time.
@@ -69,18 +68,25 @@ export async function generateScene(
             ];
         } else {
             if (isExtremeClean) {
-                prompt = `Basado en la imagen proporcionada del interior de un coche, tu tarea es una **restauración digital extrema**. Es fundamental mantener el mismo ángulo de cámara, encuadre y composición que la foto original. El objetivo es presentar el interior en un estado impecable, como si fuera nuevo de fábrica.
-    
-                Los cambios deben centrarse en:
-                1.  **Limpieza de Desorden:** Elimina cualquier objeto que no sea parte intrínseca del coche (papeles, chalecos, botellas, etc.).
-                2.  **Sustitución de Vistas Exteriores:** Borra completamente cualquier vista del exterior a través de las ventanillas y reemplázalas con un fondo de estudio neutro, de color gris pálido o beige claro, con un desenfoque de lente (bokeh) pronunciado y suave.
-                3.  **Restauración Extrema de Superficies:**
-                    *   Realiza una limpieza digital exhaustiva en TODAS las superficies. Elimina agresivamente polvo, manchas, huellas, suciedad y cualquier marca de uso.
-                    *   **Instrucción Especial (CRÍTICA):** Identifica las partes del interior que son de plástico o vinilo negro pero que, debido a una suciedad extrema, parecen marrones o descoloridas. Debes restaurar estas áreas a un color negro intenso y profundo, con el acabado mate o satinado que corresponda. Ten cuidado de NO aplicar este cambio a superficies que sean originalmente de cuero marrón, madera o tela de color beige/marrón. La IA debe ser capaz de distinguir entre suciedad y el material original.
-                
-                El resultado debe ser una imagen fotorrealista del mismo interior, pero en un estado de limpieza y conservación absolutamente perfecto.`;
+                prompt = `Tu tarea es una **reconstrucción digital EXTREMA Y RADICAL** del interior de un coche. El objetivo es que la imagen final sea fotorrealista y transmita una sensación de **limpieza absoluta y de estar recién detallado de fábrica**. Es fundamental mantener el mismo ángulo de cámara, encuadre y composición que la foto original.
+
+Sigue estas reglas de forma OBLIGATORIA y con MÁXIMA PRIORIDAD:
+
+1.  **Fondo de Estudio:** Reemplaza CUALQUIER vista a través de las ventanillas con un fondo de estudio profesional, liso, uniforme y de color gris muy pálido.
+2.  **Eliminación Total de Desorden:** Elimina CUALQUIER objeto que no sea parte del coche (papeles, botellas, etc.).
+3.  **RECONSTRUCCIÓN DE SUPERFICIES (LA REGLA MÁS IMPORTANTE):**
+    *   Te doy total libertad para **recrear y reconstruir por completo** las texturas de las partes sucias, en lugar de solo limpiarlas.
+    *   **Regla Absoluta para el Suelo:** Independientemente de su color o material original (tela o goma), TODAS las alfombrillas y la moqueta del suelo del vehículo DEBEN ser recreadas en un **NEGRO PROFUNDO Y UNIFORME**. La textura debe ser impecable, como si estuviera recién aspirada y completamente nueva. No conserves el color original del suelo bajo ninguna circunstancia.
+    *   **Plásticos, Vinilos y Resto de Gomas:** CUALQUIER otra pieza de estos materiales (salpicadero, paneles de puerta, consolas) que se vea marrón, grisácea o descolorida por la suciedad, **DEBE ser recreada en un color NEGRO INTENSO, profundo y con acabado de fábrica.** No dudes. Si parece sucio y debería ser negro, hazlo negro.
+
+El resultado final debe ser una imagen fotorrealista de un interior que luce mejor que nuevo. La reconstrucción total de alfombrillas a negro y la restauración del resto de plásticos es la clave del éxito.`;
             } else {
-                prompt = `Basado en la imagen proporcionada del interior de un coche, tu tarea es editarla para crear una versión mejorada y profesional, casi como una restauración digital. Es fundamental que mantengas el mismo ángulo de cámara, encuadre y composición que la foto original. Tu objetivo es preservar la esencia del interior pero presentarlo en un estado impecable. Los cambios deben centrarse exclusivamente en lo siguiente: 1. Eliminar el exterior: Borra completamente cualquier vista del exterior que se vea a través de las ventanillas y el parabrisas. Reemplaza estas áreas con un fondo de estudio neutro, de color gris pálido o beige claro, con un desenfoque de lente (bokeh) pronunciado y suave. 2. Limpiar el desorden: Elimina cualquier objeto que no sea parte intrínseca del coche (papeles, chalecos, botellas, ambientadores, etc.). 3. Limpieza y restauración agresiva: Realiza una limpieza digital exhaustiva. Elimina de forma agresiva todo rastro de polvo, manchas, huellas dactilares, suciedad y cualquier marca de uso o desgaste en todas las superficies (salpicadero, asientos, volante, alfombrillas, etc.). El objetivo es que todos los materiales (plástico, cuero, tela) luzcan como si acabaran de salir de fábrica, con un acabado impecable y sin imperfecciones, pero conservando su textura y forma original. El resultado final debe ser una imagen fotorrealista del mismo interior y perspectiva, pero en un estado de limpieza y conservación absolutamente perfecto, sin vistas al exterior.`;
+                prompt = `Tu tarea es realizar una restauración digital profesional de la imagen del interior de un coche. Es VITAL que mantengas el mismo ángulo de cámara, encuadre y composición de la foto original. Tu objetivo es presentar el interior en un estado impecable y listo para una revista.
+Los cambios deben ser exclusivamente los siguientes:
+1.  **Sustitución de Vistas Exteriores:** Borra completamente cualquier vista del exterior a través de las ventanillas y el parabrisas. Reemplaza estas áreas con un fondo de estudio profesional, completamente neutro y uniforme, de un color gris muy pálido o beige claro. El fondo debe ser liso, sin texturas, gradientes o efectos de desenfoque (bokeh).
+2.  **Limpieza de Desorden:** Elimina CUALQUIER objeto que no sea parte intrínseca del coche (papeles, chalecos, botellas, ambientadores, etc.).
+3.  **Limpieza Detallada:** Realiza una limpieza digital exhaustiva. Elimina todo rastro de polvo, manchas, huellas, suciedad y marcas de uso en TODAS las superficies (salpicadero, asientos, volante, alfombrillas, etc.). Los materiales deben lucir como nuevos, pero conservando su textura y forma original.
+El resultado final debe ser una imagen fotorrealista del mismo interior, pero en un estado de limpieza y conservación perfecto.`;
             }
             parts = [
                 { text: prompt },
