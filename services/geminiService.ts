@@ -16,7 +16,8 @@ export async function generateScene(
   carMimeType: string, 
   backgroundBase64?: string, 
   backgroundMimeType?: string,
-  backgroundFilename?: string
+  backgroundFilename?: string,
+  licensePlate?: string
 ): Promise<string | null> {
   try {
     const ai = getAiClient();
@@ -31,7 +32,13 @@ export async function generateScene(
         throw new Error('Para la escena exterior se requiere una imagen de fondo.');
       }
       
-      prompt = 'Usando la segunda imagen como referencia del modelo y color del coche, y la primera imagen como la escena de fondo, genera una imagen completamente nueva y fotorrealista. En esta nueva creación, el coche debe estar integrado en la escena de fondo, colocado en la plataforma giratoria central. La toma debe ser un plano más cercano del coche, con un ligero ángulo contrapicado para realzar su presencia y asegurar que los logos sean visibles. Es crucial que el coche no sea un simple recorte de la imagen original, sino una recreación generada por IA que coincida con el entorno en términos de iluminación, sombras y reflejos realistas para lograr una calidad fotográfica de alta gama. Posiciona el coche de manera que su techo quede justo debajo del letrero "World Cars", y asegúrate de que el coche se vea grande y prominente en la escena. Si no puedes replicar perfectamente la matrícula de la foto original del coche, genera el coche sin matrícula. El letrero "World Cars" en la imagen de fondo debe permanecer como está en la imagen original; no lo modifiques ni cambies su estilo.';
+      let licensePlateInstruction = 'Si no se especifica una matrícula, y la imagen de referencia del coche tiene una matrícula visible, replícala con la mayor fidelidad posible. Si no tiene matrícula o no se puede replicar, genera el coche sin matrícula.';
+
+      if (licensePlate && licensePlate.trim() !== '') {
+          licensePlateInstruction = `Es absolutamente crucial que el coche generado tenga la siguiente matrícula: "${licensePlate}". La matrícula debe ser claramente visible, estar correctamente integrada en el parachoques y ser representada con total fidelidad y fotorrealismo.`;
+      }
+      
+      prompt = `Usando la segunda imagen como referencia del modelo y color del coche, y la primera imagen como la escena de fondo, genera una imagen completamente nueva y fotorrealista. En esta nueva creación, el coche debe estar integrado en la escena de fondo, colocado en la plataforma giratoria central. La toma debe ser un plano más cercano del coche, con un ligero ángulo contrapicado para realzar su presencia y asegurar que los logos sean visibles. Es crucial que el coche no sea un simple recorte de la imagen original, sino una recreación generada por IA que coincida con el entorno en términos de iluminación, sombras y reflejos realistas para lograr una calidad fotográfica de alta gama. Posiciona el coche de manera que su techo quede justo debajo del letrero "World Cars", y asegúrate de que el coche se vea grande y prominente en la escena. ${licensePlateInstruction} El letrero "World Cars" en la imagen de fondo debe permanecer como está en la imagen original; no lo modifiques ni cambies su estilo.`;
 
       parts = [
         { text: prompt },
