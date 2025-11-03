@@ -10,9 +10,9 @@ interface ResultDisplayProps {
 
 const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
     <div className="w-full h-full flex flex-col items-center justify-center text-center p-4">
-        <div className="relative w-full h-full overflow-hidden rounded-lg bg-gray-800">
+        <div className="relative w-full h-full overflow-hidden rounded-lg bg-gray-100">
             <div
-                className="absolute top-0 right-0 bottom-0 left-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"
+                className="absolute top-0 right-0 bottom-0 left-0 bg-gradient-to-r from-transparent via-orange-400/20 to-transparent"
                 style={{
                     transform: 'translateX(-100%)',
                     animation: 'shimmer 2s infinite',
@@ -28,7 +28,7 @@ const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
             `}
             </style>
         </div>
-        <p className="absolute text-lg text-gray-300">{message}</p>
+        <p className="absolute text-lg text-gray-600">{message}</p>
     </div>
 );
 
@@ -96,12 +96,12 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
   const displayImage = processedImage || resultImage;
 
   return (
-    <div className="relative w-full aspect-video bg-gray-900/70 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-gray-700 overflow-hidden shadow-2xl">
+    <div className="relative w-full aspect-video bg-white border border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden shadow-md">
       {isLoading && (
         <ShimmerLoader message={loadingMessage} />
       )}
       {error && !isLoading && (
-        <div className="p-6 text-center text-red-400">
+        <div className="p-6 text-center text-red-600">
           <p className="font-bold text-lg">Ocurrió un error:</p>
           <p className="mt-2">{error}</p>
         </div>
@@ -112,7 +112,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
           <a
             href={displayImage}
             download="escena-coche-e-ai-studio.jpg"
-            className="absolute bottom-5 right-5 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg z-20"
+            className="absolute bottom-5 right-5 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg z-20"
           >
             Descargar
           </a>

@@ -125,13 +125,13 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="bg-transparent text-gray-100 min-h-screen font-montserrat flex flex-col">
+    <div className="bg-transparent text-gray-800 min-h-screen font-montserrat flex flex-col">
       <header className="py-8">
         <div className="container mx-auto px-6 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-pink-500">
             E•AI Studio Pro
           </h1>
-          <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
+          <p className="text-gray-600 mt-4 max-w-2xl mx-auto">
             Crea escenas fotorrealistas de tu coche, tanto exteriores como interiores, con el poder de la IA.
           </p>
         </div>
@@ -141,42 +141,42 @@ const App: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           
           <div className="flex flex-col space-y-8">
-            <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">Tipo de Escena</h2>
-                <div className="flex mt-4 rounded-lg bg-gray-800/50 p-1">
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">Tipo de Escena</h2>
+                <div className="flex mt-4 rounded-lg bg-gray-100 p-1">
                     <button
                     onClick={() => setSceneType('exterior')}
-                    className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${sceneType === 'exterior' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                    className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${sceneType === 'exterior' ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-200'}`}
                     >
                     Exterior
                     </button>
                     <button
                     onClick={() => setSceneType('interior')}
-                    className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${sceneType === 'interior' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                    className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${sceneType === 'interior' ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-200'}`}
                     >
                     Interior
                     </button>
                 </div>
             </div>
 
-            <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">1. Sube tu Imagen</h2>
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+              <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">1. Sube tu Imagen</h2>
               <ImageUploader onImageUpload={handleCarUpload} label={sceneType === 'exterior' ? "Sube una imagen del coche" : "Sube una imagen del interior"} />
             </div>
             
             {sceneType === 'interior' && (
-              <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">2. Opciones de Interior</h2>
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">2. Opciones de Interior</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                   <div>
-                      <label htmlFor="kilometers" className="text-gray-400 mb-2 font-medium block">Kilometraje (Opcional)</label>
+                      <label htmlFor="kilometers" className="text-gray-600 mb-2 font-medium block">Kilometraje (Opcional)</label>
                       <input
                           id="kilometers"
                           type="text"
                           value={kilometers}
                           onChange={(e) => setKilometers(e.target.value)}
                           placeholder="EJ: 95000"
-                          className="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                          className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                       />
                   </div>
                   <div className="flex flex-col justify-center">
@@ -189,10 +189,10 @@ const App: React.FC = () => {
                           checked={isExtremeClean}
                           onChange={() => setIsExtremeClean(!isExtremeClean)}
                         />
-                        <div className="block bg-gray-600 w-14 h-8 rounded-full"></div>
-                        <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${isExtremeClean ? 'transform translate-x-6 bg-gradient-to-r from-blue-400 to-purple-500' : ''}`}></div>
+                        <div className="block bg-gray-200 w-14 h-8 rounded-full"></div>
+                        <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-sm ${isExtremeClean ? 'transform translate-x-6 bg-gradient-to-r from-orange-400 to-pink-500' : ''}`}></div>
                       </div>
-                      <div className="ml-3 text-white font-medium">
+                      <div className="ml-3 text-gray-700 font-medium">
                         Limpieza Extrema
                       </div>
                     </label>
@@ -203,29 +203,29 @@ const App: React.FC = () => {
 
             {sceneType === 'exterior' && (
               <>
-                <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">2. Matrícula (Opcional)</h2>
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">2. Matrícula (Opcional)</h2>
                   <input
                       id="license-plate"
                       type="text"
                       value={licensePlate}
                       onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
                       placeholder="EJ: 1234 ABC"
-                      className="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all mt-4"
+                      className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all mt-4"
                   />
                 </div>
-                <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">3. Elige la Escena de Fondo</h2>
-                  <div className="flex mt-4 rounded-lg bg-gray-800/50 p-1">
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">3. Elige la Escena de Fondo</h2>
+                  <div className="flex mt-4 rounded-lg bg-gray-100 p-1">
                     <button
                       onClick={() => setBackgroundInputMethod('upload')}
-                      className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${backgroundInputMethod === 'upload' ? 'bg-blue-500/80 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                      className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${backgroundInputMethod === 'upload' ? 'bg-orange-500/90 text-white shadow' : 'text-gray-500 hover:bg-gray-200'}`}
                     >
                       Subir Archivo
                     </button>
                     <button
                       onClick={() => setBackgroundInputMethod('url')}
-                      className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${backgroundInputMethod === 'url' ? 'bg-blue-500/80 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                      className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${backgroundInputMethod === 'url' ? 'bg-orange-500/90 text-white shadow' : 'text-gray-500 hover:bg-gray-200'}`}
                     >
                       Pegar URL
                     </button>
@@ -235,15 +235,15 @@ const App: React.FC = () => {
                     {backgroundInputMethod === 'upload' ? (
                       <ImageUploader onImageUpload={handleBackgroundUpload} label="Sube una imagen de fondo" />
                     ) : (
-                      <div className="h-64 flex flex-col justify-center items-center bg-gray-800/50 border-2 border-dashed border-gray-700 rounded-lg p-4">
-                          <label htmlFor="bg-url" className="text-gray-400 mb-2 font-semibold">URL de la imagen de fondo</label>
+                      <div className="h-64 flex flex-col justify-center items-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4">
+                          <label htmlFor="bg-url" className="text-gray-500 mb-2 font-semibold">URL de la imagen de fondo</label>
                           <input
                               id="bg-url"
                               type="text"
                               value={backgroundUrl}
                               onChange={handleBackgroundUrlChange}
                               placeholder="https://ejemplo.com/fondo.jpg"
-                              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                              className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                           />
                           {backgroundUrl && <img src={backgroundUrl} alt="Previsualización de URL" className="mt-4 max-h-32 rounded-lg object-contain" onError={(e) => e.currentTarget.style.display='none'} />}
                       </div>
@@ -253,28 +253,28 @@ const App: React.FC = () => {
               </>
             )}
             
-            <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">Instrucciones Adicionales (Opcional)</h2>
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">Instrucciones Adicionales (Opcional)</h2>
                 <textarea
                     id="additional-instructions"
                     value={additionalInstructions}
                     onChange={(e) => setAdditionalInstructions(e.target.value)}
                     placeholder="Ej: Quiero el coche en diagonal, mostrando el lado del conductor..."
-                    className="w-full mt-4 bg-gray-800/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all h-24 resize-y"
+                    className="w-full mt-4 bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all h-24 resize-y"
                 />
             </div>
 
             <button
               onClick={handleGenerate}
               disabled={isGenerateDisabled}
-              className="w-full text-white font-bold text-lg py-4 px-6 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-purple-500/30"
+              className="w-full text-white font-bold text-lg py-4 px-6 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 hover:shadow-pink-500/30"
             >
               {isLoading ? 'Generando...' : 'Generar Escena'}
             </button>
           </div>
 
           <div className="sticky top-8">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-300 tracking-wide">Resultado</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-gray-800 tracking-wide">Resultado</h2>
             <ResultDisplay
               isLoading={isLoading}
               resultImage={resultImage}

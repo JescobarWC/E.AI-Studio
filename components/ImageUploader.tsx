@@ -70,7 +70,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, lab
   return (
     <div
       className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all duration-300 h-64 flex flex-col justify-center items-center group cursor-pointer overflow-hidden ${
-        isDragging ? 'border-purple-500 bg-gray-800 scale-105 shadow-lg' : 'border-gray-700 bg-gray-800/50 hover:border-gray-500'
+        isDragging ? 'border-orange-500 bg-orange-50 scale-105 shadow-lg' : 'border-gray-300 bg-white hover:border-gray-400'
       }`}
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
@@ -102,15 +102,15 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, lab
             </div>
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center space-y-4 text-gray-400 w-full">
-          <p className="font-semibold text-lg">
+        <div className="flex flex-col items-center justify-center space-y-4 text-gray-500 w-full">
+          <p className="font-semibold text-lg text-gray-600">
             {label}
           </p>
           <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full justify-center">
              <button
                type="button"
                onClick={(e) => { e.stopPropagation(); onUploadClick(); }}
-               className="flex w-full sm:w-auto items-center justify-center px-5 py-2.5 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors duration-300 font-semibold"
+               className="flex w-full sm:w-auto items-center justify-center px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-300 font-semibold"
              >
                 <UploadIcon className="w-5 h-5 mr-2"/>
                 Subir Archivo
@@ -118,7 +118,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageUpload, lab
              <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onCameraClick(); }}
-                className="flex w-full sm:w-auto items-center justify-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:opacity-90 transition-opacity duration-300 font-semibold"
+                className="flex w-full sm:w-auto items-center justify-center px-5 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity duration-300 font-semibold"
              >
                 <CameraIcon className="w-5 h-5 mr-2"/>
                 Tomar Foto
