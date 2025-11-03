@@ -7,7 +7,8 @@ interface ResultDisplayProps {
   loadingMessage: string;
   kilometers?: string;
   carModel?: string;
-  onRegenerate?: () => void;
+  sceneType: 'exterior' | 'interior';
+  onRegenerateBigger?: () => void;
 }
 
 const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
@@ -35,7 +36,7 @@ const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
 );
 
 
-export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultImage, error, loadingMessage, kilometers, carModel, onRegenerate }) => {
+export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultImage, error, loadingMessage, kilometers, carModel, sceneType, onRegenerateBigger }) => {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -117,22 +118,22 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
       {displayImage && !isLoading && (
         <>
           <img src={displayImage} alt={carModel || 'Resultado generado'} className="w-full h-full object-contain" />
-          <div className="absolute bottom-5 right-5 flex items-center space-x-3 z-20">
-            {onRegenerate && (
-                <button
-                onClick={onRegenerate}
-                className="bg-white/90 text-gray-800 px-5 py-2.5 rounded-lg font-semibold hover:bg-white transition-colors shadow-lg"
-                >
-                Mejorar
-                </button>
-            )}
+          <div className="absolute bottom-5 right-5 flex flex-col items-end space-y-3 z-20">
             <a
-                href={displayImage}
-                download={fileName}
-                className="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg"
+              href={displayImage}
+              download={fileName}
+              className="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg"
             >
-                Descargar
+              Descargar
             </a>
+            {sceneType === 'exterior' && onRegenerateBigger && (
+               <button
+                  onClick={onRegenerateBigger}
+                  className="bg-white/80 backdrop-blur-sm text-gray-800 px-5 py-2.5 rounded-lg font-semibold hover:bg-white transition-colors shadow-lg border border-gray-300"
+              >
+                  Mejorar (10% más grande)
+              </button>
+            )}
           </div>
         </>
       )}

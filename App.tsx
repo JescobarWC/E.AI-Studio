@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { ImageUploader } from './components/ImageUploader';
 import { ResultDisplay } from './components/ResultDisplay';
-import { generateScene, identifyCarModel, regenerateScene } from './services/geminiService';
+import { generateScene, identifyCarModel } from './services/geminiService';
 import { fileToBase64, urlToBase64 } from './utils/fileUtils';
 
 const App: React.FC = () => {
@@ -94,11 +94,11 @@ const App: React.FC = () => {
             carFile.type,
             backgroundBase64,
             backgroundMimeType,
-            backgroundFile?.name,
             licensePlate,
             undefined,
             undefined,
-            additionalInstructions
+            additionalInstructions,
+            false // makeBigger = false for initial generation
         );
       } else { // Interior
         setLoadingMessage('La IA está creando tu escena interior...');
@@ -108,7 +108,6 @@ const App: React.FC = () => {
           carFile.type,
           undefined, // No background for interior
           undefined, // No background for interior
-          undefined,
           undefined,
           isExtremeClean,
           kilometers,
@@ -131,58 +130,60 @@ const App: React.FC = () => {
     }
   };
   
-  const handleRegenerate = async () => {
-    if (!resultImage || !carFile || sceneType !== 'exterior') {
-      setError('No hay una imagen de escena exterior para mejorar.');
+  const handleRegenerateBigger = async () => {
+    if (!carFile || (!backgroundFile && !backgroundUrl)) {
       return;
     }
-    if (!backgroundFile && !backgroundUrl) {
-      setError('Se necesita la imagen de fondo original para mejorar la escena.');
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
-    setLoadingMessage('La IA está refinando tu escena...');
+    setLoadingMessage('Haciendo el coche más grande...');
 
     try {
-      const carBase64 = await fileToBase64(carFile);
-      const previousResultBase64 = resultImage.split(',')[1];
-      
-      let backgroundBase64: string;
-      let backgroundMimeType: string;
+        const carBase64 = await fileToBase64(carFile);
+        let backgroundBase64: string | undefined;
+        let backgroundMimeType: string | undefined;
 
-      if (backgroundFile) {
-        backgroundBase64 = await fileToBase64(backgroundFile);
-        backgroundMimeType = backgroundFile.type;
-      } else { // backgroundUrl must be present due to the check above
-        const urlData = await urlToBase64(backgroundUrl);
-        backgroundBase64 = urlData.base64;
-        backgroundMimeType = urlData.mimeType;
-      }
-      
-      const regeneratedImageBase64 = await regenerateScene({
-        carBase64,
-        carMimeType: carFile.type,
-        backgroundBase64,
-        backgroundMimeType,
-        previousResultBase64,
-        additionalInstructions,
-      });
+        if (backgroundInputMethod === 'upload' && backgroundFile) {
+            backgroundBase64 = await fileToBase64(backgroundFile);
+            backgroundMimeType = backgroundFile.type;
+        } else if (backgroundInputMethod === 'url' && backgroundUrl) {
+            const urlData = await urlToBase64(backgroundUrl);
+            backgroundBase64 = urlData.base64;
+            backgroundMimeType = urlData.mimeType;
+        }
+        
+        if (!backgroundBase64 || !backgroundMimeType) {
+            throw new Error("No se ha encontrado una fuente de fondo para la regeneración.");
+        }
 
-      if (regeneratedImageBase64) {
-        setResultImage(`data:image/jpeg;base64,${regeneratedImageBase64}`);
-      } else {
-        setError('El modelo no devolvió una imagen mejorada. El resultado anterior se mantiene.');
-      }
+        const generatedImageBase64 = await generateScene(
+            'exterior',
+            carBase64,
+            carFile.type,
+            backgroundBase64,
+            backgroundMimeType,
+            licensePlate,
+            undefined,
+            undefined,
+            additionalInstructions,
+            true // makeBigger = true for regeneration
+        );
+
+        if (generatedImageBase64) {
+            setResultImage(`data:image/jpeg;base64,${generatedImageBase64}`);
+        } else {
+            setError('El modelo no devolvió una imagen al intentar mejorarla.');
+        }
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Ocurrió un error desconocido.';
-      setError(`Error al mejorar la imagen: ${errorMessage}.`);
+      setError(`Error: ${errorMessage}.`);
     } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
+        setIsLoading(false);
+        setLoadingMessage('');
     }
   };
+
 
   const isExteriorFieldsMissing = sceneType === 'exterior' && ((backgroundInputMethod === 'upload' && !backgroundFile) || (backgroundInputMethod === 'url' && !backgroundUrl));
   const isGenerateDisabled = isLoading || !carFile || isExteriorFieldsMissing;
@@ -346,7 +347,8 @@ const App: React.FC = () => {
               loadingMessage={loadingMessage}
               kilometers={kilometers}
               carModel={carModel}
-              onRegenerate={sceneType === 'exterior' && resultImage && !isLoading ? handleRegenerate : undefined}
+              sceneType={sceneType}
+              onRegenerateBigger={handleRegenerateBigger}
             />
           </div>
         </div>
