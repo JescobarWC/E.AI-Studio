@@ -13,7 +13,8 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
   const [processedImage, setProcessedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    const shouldProcessImage = resultImage && !isLoading && kilometers && kilometers.trim() !== '';
+    // Siempre procesaremos la imagen para añadir el aviso legal.
+    const shouldProcessImage = resultImage && !isLoading;
 
     if (shouldProcessImage) {
       const img = new Image();
@@ -34,24 +35,41 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
         // 1. Dibuja la imagen original en el canvas.
         ctx.drawImage(img, 0, 0);
 
-        // 2. Dibuja el overlay.
-        const overlayHeight = canvas.height * 0.12; // Altura del overlay (12% de la altura de la imagen).
-        const fontSize = overlayHeight * 0.4; // Tamaño de la fuente proporcional al overlay.
+        // 2. Prepara los overlays.
+        const hasKilometers = kilometers && kilometers.trim() !== '';
+        
+        // Define las alturas para cada overlay.
+        const disclaimerOverlayHeight = canvas.height * 0.07; // 7% para el aviso
+        const mileageOverlayHeight = hasKilometers ? canvas.height * 0.10 : 0; // 10% para el kilometraje
+        const totalOverlayHeight = disclaimerOverlayHeight + mileageOverlayHeight;
 
-        // Rectángulo negro semitransparente.
+        // 3. Dibuja un único fondo para todos los overlays.
         ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        ctx.fillRect(0, canvas.height - overlayHeight, canvas.width, overlayHeight);
+        ctx.fillRect(0, canvas.height - totalOverlayHeight, canvas.width, totalOverlayHeight);
 
-        // Texto del kilometraje.
+        // 4. Dibuja el texto del kilometraje (si aplica) en la parte superior del overlay.
+        if (hasKilometers) {
+          const fontSize = mileageOverlayHeight * 0.45; 
+          ctx.fillStyle = 'white';
+          ctx.font = `600 ${fontSize}px Montserrat, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const text = `Kilometraje: ${kilometers} km`;
+          // Lo posiciona en la sección superior del overlay.
+          ctx.fillText(text, canvas.width / 2, canvas.height - totalOverlayHeight + (mileageOverlayHeight / 2));
+        }
+
+        // 5. Dibuja el texto del aviso legal en la parte inferior del overlay.
+        const disclaimerFontSize = disclaimerOverlayHeight * 0.4; // Ajustado de 0.5 a 0.4
         ctx.fillStyle = 'white';
-        ctx.font = `600 ${fontSize}px Montserrat, sans-serif`; // font-weight 600 (semibold)
+        ctx.font = `400 ${disclaimerFontSize}px Montserrat, sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
-        const text = `Kilometraje: ${kilometers} km`;
-        ctx.fillText(text, canvas.width / 2, canvas.height - overlayHeight / 2);
+        const disclaimerText = 'Imagen conceptual, solicita mas fotos a tu asesor comercial.';
+        // Lo posiciona en la sección inferior del overlay.
+        ctx.fillText(disclaimerText, canvas.width / 2, canvas.height - (disclaimerOverlayHeight / 2));
 
-        // 3. Convierte el canvas a una nueva imagen base64 y actualiza el estado.
+        // 6. Convierte el canvas a una nueva imagen base64 y actualiza el estado.
         setProcessedImage(canvas.toDataURL('image/jpeg'));
       };
       
