@@ -125,63 +125,61 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="bg-gray-900 text-white min-h-screen font-sans flex flex-col">
-      <header className="py-6 bg-gray-800 shadow-lg">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold text-center text-indigo-400 tracking-wider">
-            E•AI Studio
+    <div className="bg-transparent text-gray-100 min-h-screen font-montserrat flex flex-col">
+      <header className="py-8">
+        <div className="container mx-auto px-6 text-center">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+            E•AI Studio Pro
           </h1>
-          <p className="text-center text-gray-400 mt-2">
+          <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
             Crea escenas fotorrealistas de tu coche, tanto exteriores como interiores, con el poder de la IA.
           </p>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 flex-grow">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-semibold mb-4 text-indigo-300">Tipo de Escena</h2>
-              <div className="flex mb-4 rounded-lg bg-gray-800 p-1">
-                <button
-                  onClick={() => setSceneType('exterior')}
-                  className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${sceneType === 'exterior' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
-                >
-                  Exterior
-                </button>
-                <button
-                  onClick={() => setSceneType('interior')}
-                  className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${sceneType === 'interior' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
-                >
-                  Interior
-                </button>
-              </div>
+      <main className="container mx-auto px-6 py-8 flex-grow">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          
+          <div className="flex flex-col space-y-8">
+            <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
+                <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">Tipo de Escena</h2>
+                <div className="flex mt-4 rounded-lg bg-gray-800/50 p-1">
+                    <button
+                    onClick={() => setSceneType('exterior')}
+                    className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${sceneType === 'exterior' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                    >
+                    Exterior
+                    </button>
+                    <button
+                    onClick={() => setSceneType('interior')}
+                    className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${sceneType === 'interior' ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : 'text-gray-400 hover:bg-gray-700/50'}`}
+                    >
+                    Interior
+                    </button>
+                </div>
             </div>
 
-            <div>
-              <h2 className="text-2xl font-semibold mb-4 text-indigo-300">1. Sube tu Imagen</h2>
+            <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
+              <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">1. Sube tu Imagen</h2>
               <ImageUploader onImageUpload={handleCarUpload} label={sceneType === 'exterior' ? "Sube una imagen del coche" : "Sube una imagen del interior"} />
             </div>
             
             {sceneType === 'interior' && (
-              <div>
-                <h2 className="text-2xl font-semibold mb-4 text-indigo-300">2. Opciones de Interior</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-gray-800 rounded-lg p-4">
-                      <label htmlFor="kilometers" className="text-gray-400 mb-2 font-semibold block">Kilometraje (Opcional)</label>
+              <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
+                <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">2. Opciones de Interior</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                  <div>
+                      <label htmlFor="kilometers" className="text-gray-400 mb-2 font-medium block">Kilometraje (Opcional)</label>
                       <input
                           id="kilometers"
                           type="text"
                           value={kilometers}
                           onChange={(e) => setKilometers(e.target.value)}
                           placeholder="EJ: 95000"
-                          className="w-full bg-gray-900 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          className="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
                       />
-                       <p className="text-xs text-gray-500 mt-2">
-                         Mostrará este valor en el cuentakilómetros.
-                       </p>
                   </div>
-                  <div className="bg-gray-800 rounded-lg p-4 flex flex-col justify-center">
+                  <div className="flex flex-col justify-center">
                     <label htmlFor="extreme-clean" className="flex items-center cursor-pointer">
                       <div className="relative">
                         <input 
@@ -192,15 +190,12 @@ const App: React.FC = () => {
                           onChange={() => setIsExtremeClean(!isExtremeClean)}
                         />
                         <div className="block bg-gray-600 w-14 h-8 rounded-full"></div>
-                        <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${isExtremeClean ? 'transform translate-x-6 bg-indigo-400' : ''}`}></div>
+                        <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${isExtremeClean ? 'transform translate-x-6 bg-gradient-to-r from-blue-400 to-purple-500' : ''}`}></div>
                       </div>
                       <div className="ml-3 text-white font-medium">
                         Limpieza Extrema
                       </div>
                     </label>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Ideal para interiores muy sucios.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -208,88 +203,78 @@ const App: React.FC = () => {
 
             {sceneType === 'exterior' && (
               <>
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4 text-indigo-300">2. Matrícula (Opcional)</h2>
-                  <div className="bg-gray-800 rounded-lg p-4">
-                      <label htmlFor="license-plate" className="text-gray-400 mb-2 font-semibold block">Introduce la matrícula</label>
-                      <input
-                          id="license-plate"
-                          type="text"
-                          value={licensePlate}
-                          onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
-                          placeholder="EJ: 1234 ABC"
-                          className="w-full bg-gray-900 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      />
-                       <p className="text-xs text-gray-500 mt-2">
-                         La IA intentará añadir esta matrícula al vehículo con la máxima fidelidad.
-                       </p>
-                  </div>
+                <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">2. Matrícula (Opcional)</h2>
+                  <input
+                      id="license-plate"
+                      type="text"
+                      value={licensePlate}
+                      onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
+                      placeholder="EJ: 1234 ABC"
+                      className="w-full bg-gray-800/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all mt-4"
+                  />
                 </div>
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4 text-indigo-300">3. Elige la Escena de Fondo</h2>
-                  <div className="flex mb-4 rounded-lg bg-gray-800 p-1">
+                <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">3. Elige la Escena de Fondo</h2>
+                  <div className="flex mt-4 rounded-lg bg-gray-800/50 p-1">
                     <button
                       onClick={() => setBackgroundInputMethod('upload')}
-                      className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${backgroundInputMethod === 'upload' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+                      className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${backgroundInputMethod === 'upload' ? 'bg-blue-500/80 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
                     >
                       Subir Archivo
                     </button>
                     <button
                       onClick={() => setBackgroundInputMethod('url')}
-                      className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${backgroundInputMethod === 'url' ? 'bg-indigo-600 text-white' : 'text-gray-300 hover:bg-gray-700'}`}
+                      className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${backgroundInputMethod === 'url' ? 'bg-blue-500/80 text-white' : 'text-gray-400 hover:bg-gray-700/50'}`}
                     >
                       Pegar URL
                     </button>
                   </div>
 
-                  {backgroundInputMethod === 'upload' ? (
-                    <ImageUploader onImageUpload={handleBackgroundUpload} label="Sube una imagen de fondo" />
-                  ) : (
-                    <div className="h-64 flex flex-col justify-center items-center bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-4">
-                        <label htmlFor="bg-url" className="text-gray-400 mb-2 font-semibold">URL de la imagen de fondo</label>
-                        <input
-                            id="bg-url"
-                            type="text"
-                            value={backgroundUrl}
-                            onChange={handleBackgroundUrlChange}
-                            placeholder="https://ejemplo.com/fondo.jpg"
-                            className="w-full bg-gray-900 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        {backgroundUrl && <img src={backgroundUrl} alt="Previsualización de URL" className="mt-4 max-h-32 rounded-lg object-contain" onError={(e) => e.currentTarget.style.display='none'} />}
-                    </div>
-                  )}
+                  <div className="mt-4">
+                    {backgroundInputMethod === 'upload' ? (
+                      <ImageUploader onImageUpload={handleBackgroundUpload} label="Sube una imagen de fondo" />
+                    ) : (
+                      <div className="h-64 flex flex-col justify-center items-center bg-gray-800/50 border-2 border-dashed border-gray-700 rounded-lg p-4">
+                          <label htmlFor="bg-url" className="text-gray-400 mb-2 font-semibold">URL de la imagen de fondo</label>
+                          <input
+                              id="bg-url"
+                              type="text"
+                              value={backgroundUrl}
+                              onChange={handleBackgroundUrlChange}
+                              placeholder="https://ejemplo.com/fondo.jpg"
+                              className="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                          />
+                          {backgroundUrl && <img src={backgroundUrl} alt="Previsualización de URL" className="mt-4 max-h-32 rounded-lg object-contain" onError={(e) => e.currentTarget.style.display='none'} />}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             )}
             
-            <div>
-              <h2 className="text-2xl font-semibold mb-4 text-indigo-300">Instrucciones Adicionales (Opcional)</h2>
-              <div className="bg-gray-800 rounded-lg p-4">
-                  <label htmlFor="additional-instructions" className="text-gray-400 mb-2 font-semibold block">Describe cualquier detalle extra</label>
-                  <textarea
-                      id="additional-instructions"
-                      value={additionalInstructions}
-                      onChange={(e) => setAdditionalInstructions(e.target.value)}
-                      placeholder="Ej: Quiero el coche en diagonal, mostrando el lado del conductor. El ambiente debe ser de atardecer."
-                      className="w-full bg-gray-900 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 h-24 resize-y"
-                  />
-                   <p className="text-xs text-gray-500 mt-2">
-                     Proporciona indicaciones específicas a la IA para afinar el resultado.
-                   </p>
-              </div>
+            <div className="bg-gray-900/70 backdrop-blur-sm border border-gray-700 rounded-2xl p-6">
+                <h2 className="text-xl font-semibold mb-4 text-gray-300 tracking-wide border-b border-gray-700 pb-3">Instrucciones Adicionales (Opcional)</h2>
+                <textarea
+                    id="additional-instructions"
+                    value={additionalInstructions}
+                    onChange={(e) => setAdditionalInstructions(e.target.value)}
+                    placeholder="Ej: Quiero el coche en diagonal, mostrando el lado del conductor..."
+                    className="w-full mt-4 bg-gray-800/50 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all h-24 resize-y"
+                />
             </div>
 
             <button
               onClick={handleGenerate}
               disabled={isGenerateDisabled}
-              className="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all duration-300 disabled:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-400 flex items-center justify-center shadow-lg"
+              className="w-full text-white font-bold text-lg py-4 px-6 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-purple-500/30"
             >
               {isLoading ? 'Generando...' : 'Generar Escena'}
             </button>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-semibold mb-4 text-indigo-300">Resultado</h2>
+          <div className="sticky top-8">
+            <h2 className="text-2xl font-semibold mb-4 text-gray-300 tracking-wide">Resultado</h2>
             <ResultDisplay
               isLoading={isLoading}
               resultImage={resultImage}
@@ -301,8 +286,8 @@ const App: React.FC = () => {
         </div>
       </main>
       
-      <footer className="py-4 text-center text-gray-500 text-sm">
-        <p>E•AI Studio 2025 todos los derechos reservados, creado por Jose Ignacio Escobar Jiménez</p>
+      <footer className="py-6 text-center text-gray-500 text-sm mt-12">
+        <p>E•AI Studio Pro © 2025. Creado por Jose Ignacio Escobar Jiménez.</p>
       </footer>
     </div>
   );
