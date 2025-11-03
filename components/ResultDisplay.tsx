@@ -6,6 +6,7 @@ interface ResultDisplayProps {
   error: string | null;
   loadingMessage: string;
   kilometers?: string;
+  carModel?: string;
 }
 
 const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
@@ -33,7 +34,7 @@ const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
 );
 
 
-export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultImage, error, loadingMessage, kilometers }) => {
+export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultImage, error, loadingMessage, kilometers, carModel }) => {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -95,6 +96,12 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
 
   const displayImage = processedImage || resultImage;
 
+  const slugify = (text: string) => text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+  
+  const fileName = carModel
+    ? `${slugify(carModel)}-generado-con-e-ai-studio.jpg`
+    : 'escena-coche-e-ai-studio.jpg';
+
   return (
     <div className="relative w-full aspect-video bg-white border border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden shadow-md">
       {isLoading && (
@@ -108,10 +115,10 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
       )}
       {displayImage && !isLoading && (
         <>
-          <img src={displayImage} alt="Resultado generado" className="w-full h-full object-contain" />
+          <img src={displayImage} alt={carModel || 'Resultado generado'} className="w-full h-full object-contain" />
           <a
             href={displayImage}
-            download="escena-coche-e-ai-studio.jpg"
+            download={fileName}
             className="absolute bottom-5 right-5 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg z-20"
           >
             Descargar

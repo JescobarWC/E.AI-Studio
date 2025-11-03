@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { ImageUploader } from './components/ImageUploader';
 import { ResultDisplay } from './components/ResultDisplay';
-import { generateScene } from './services/geminiService';
+import { generateScene, identifyCarModel } from './services/geminiService';
 import { fileToBase64, urlToBase64 } from './utils/fileUtils';
 
 const App: React.FC = () => {
@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
+  const [carModel, setCarModel] = useState<string>('');
   
   const handleCarUpload = useCallback((file: File) => {
     setCarFile(file);
@@ -53,10 +54,20 @@ const App: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setResultImage(null);
-    setLoadingMessage('Preparando imágenes y generando tu escena...');
+    setCarModel('');
 
     try {
+      setLoadingMessage('Identificando modelo del coche...');
       const carBase64 = await fileToBase64(carFile);
+
+      try {
+        const identifiedModel = await identifyCarModel(carBase64, carFile.type);
+        setCarModel(identifiedModel);
+      } catch (identificationError) {
+        console.warn('No se pudo identificar el modelo del coche, se usará un nombre de archivo genérico.', identificationError);
+        // No detenemos el proceso, solo no tendremos el nombre para el archivo
+      }
+
       let generatedImageBase64: string | null = null;
       
       if (sceneType === 'exterior') {
@@ -281,6 +292,7 @@ const App: React.FC = () => {
               error={error}
               loadingMessage={loadingMessage}
               kilometers={kilometers}
+              carModel={carModel}
             />
           </div>
         </div>

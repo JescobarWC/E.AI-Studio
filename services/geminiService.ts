@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from '@google/genai';
 
 // Helper function to initialize the AI client just-in-time.
@@ -9,6 +8,29 @@ const getAiClient = () => {
   }
   return new GoogleGenAI({ apiKey: API_KEY });
 }
+
+export async function identifyCarModel(carBase64: string, carMimeType: string): Promise<string> {
+  try {
+    const ai = getAiClient();
+    const prompt = "Identifica la marca y el modelo del coche en esta imagen. Responde únicamente con la marca y el modelo. Por ejemplo: 'Audi R8'. No añadas texto adicional.";
+    
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: {
+            parts: [
+                { text: prompt },
+                { inlineData: { data: carBase64, mimeType: carMimeType } },
+            ],
+        },
+    });
+
+    return response.text.trim();
+  } catch (error) {
+    console.error('Error al identificar el modelo del coche:', error);
+    throw new Error('No se pudo identificar el modelo del coche.');
+  }
+}
+
 
 export async function generateScene(
   type: 'exterior' | 'interior',
@@ -52,6 +74,7 @@ Reglas cruciales:
 1. **Integración Perfecta:** El coche debe parecer que realmente está en esa escena. Presta máxima atención a la iluminación, las sombras proyectadas sobre el suelo y los reflejos en la carrocería del coche, que deben corresponder con el entorno.
 2. **No Recortar y Pegar:** Es fundamental que generes el coche de nuevo. No es un simple montaje. El coche debe adaptarse a la perspectiva y proporciones de la escena.
 3. **Calidad Fotográfica:** El resultado final debe tener la calidad de una fotografía de alta gama.
+4. **TAMAÑO Y ENCUADRE DEL COCHE (REGLA DE MÁXIMA PRIORIDAD):** Esta es la regla más importante. El objetivo es una **foto comercial de alto impacto**, no una simulación realista. Es **OBLIGATORIO** que generes el coche para que sea **mucho más grande y prominente** de lo que dictaría una perspectiva estricta. El coche debe **dominar la composición** y ocupar una porción significativa del encuadre. No dudes en sacrificar el realismo de la escala para conseguir un resultado donde el coche luzca imponente y sea el protagonista absoluto.
 ${licensePlateInstruction}${userInstructions}`;
 
       parts = [
