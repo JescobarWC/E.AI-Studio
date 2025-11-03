@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [licensePlate, setLicensePlate] = useState<string>('');
   const [isExtremeClean, setIsExtremeClean] = useState<boolean>(false);
   const [kilometers, setKilometers] = useState<string>('');
+  const [additionalInstructions, setAdditionalInstructions] = useState<string>('');
 
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -83,7 +84,10 @@ const App: React.FC = () => {
             backgroundBase64,
             backgroundMimeType,
             backgroundFile?.name,
-            licensePlate
+            licensePlate,
+            undefined,
+            undefined,
+            additionalInstructions
         );
       } else { // Interior
         setLoadingMessage('La IA está creando tu escena interior...');
@@ -96,7 +100,8 @@ const App: React.FC = () => {
           undefined,
           undefined,
           isExtremeClean,
-          kilometers
+          kilometers,
+          additionalInstructions
         );
       }
 
@@ -257,10 +262,27 @@ const App: React.FC = () => {
               </>
             )}
             
+            <div>
+              <h2 className="text-2xl font-semibold mb-4 text-indigo-300">Instrucciones Adicionales (Opcional)</h2>
+              <div className="bg-gray-800 rounded-lg p-4">
+                  <label htmlFor="additional-instructions" className="text-gray-400 mb-2 font-semibold block">Describe cualquier detalle extra</label>
+                  <textarea
+                      id="additional-instructions"
+                      value={additionalInstructions}
+                      onChange={(e) => setAdditionalInstructions(e.target.value)}
+                      placeholder="Ej: Quiero el coche en diagonal, mostrando el lado del conductor. El ambiente debe ser de atardecer."
+                      className="w-full bg-gray-900 border border-gray-500 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 h-24 resize-y"
+                  />
+                   <p className="text-xs text-gray-500 mt-2">
+                     Proporciona indicaciones específicas a la IA para afinar el resultado.
+                   </p>
+              </div>
+            </div>
+
             <button
               onClick={handleGenerate}
               disabled={isGenerateDisabled}
-              className="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all duration-300 disabled:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-400 flex items-center justify-center shadow-lg mt-8"
+              className="w-full bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-all duration-300 disabled:bg-gray-700 disabled:cursor-not-allowed disabled:text-gray-400 flex items-center justify-center shadow-lg"
             >
               {isLoading ? 'Generando...' : 'Generar Escena'}
             </button>

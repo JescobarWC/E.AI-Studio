@@ -19,7 +19,8 @@ export async function generateScene(
   backgroundFilename?: string,
   licensePlate?: string,
   isExtremeClean?: boolean,
-  kilometers?: string
+  kilometers?: string,
+  additionalInstructions?: string
 ): Promise<string | null> {
   try {
     const ai = getAiClient();
@@ -28,6 +29,10 @@ export async function generateScene(
     let prompt: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let parts: any[];
+
+    const userInstructions = (additionalInstructions && additionalInstructions.trim() !== '') 
+        ? `\n- **Instrucciones Adicionales del Usuario (Máxima Prioridad):** ${additionalInstructions}`
+        : '';
 
     if (type === 'exterior') {
       if (!backgroundBase64 || !backgroundMimeType) {
@@ -40,12 +45,19 @@ export async function generateScene(
           licensePlateInstruction = `Es absolutamente crucial que el coche generado tenga la siguiente matrícula: "${licensePlate}". La matrícula debe ser claramente visible, estar correctamente integrada en el parachoques y ser representada con total fidelidad y fotorrealismo.`;
       }
       
-      prompt = `Usando la segunda imagen como referencia del modelo, color y perspectiva general del coche (ya sea frontal, trasera o lateral), y la primera imagen como la escena de fondo, genera una imagen completamente nueva y fotorrealista. En esta nueva creación, el coche debe estar integrado en la escena de fondo. La toma debe mantener la perspectiva de la foto de referencia, pero ser un plano más cercano del coche y con un ligero ángulo contrapicado para realzar su presencia. Es crucial que el coche no sea un simple recorte de la imagen original, sino una recreación generada por IA que coincida con el entorno en términos de iluminación, sombras y reflejos realistas para lograr una calidad fotográfica de alta gama. ${licensePlateInstruction}`;
+      prompt = `Tu tarea es generar una imagen fotorrealista integrando un coche en un fondo.
+- La primera imagen proporcionada es el fondo.
+- La segunda imagen es la referencia para el coche (modelo, color, perspectiva).
+Reglas cruciales:
+1. **Integración Perfecta:** El coche debe parecer que realmente está en esa escena. Presta máxima atención a la iluminación, las sombras proyectadas sobre el suelo y los reflejos en la carrocería del coche, que deben corresponder con el entorno.
+2. **No Recortar y Pegar:** Es fundamental que generes el coche de nuevo. No es un simple montaje. El coche debe adaptarse a la perspectiva y proporciones de la escena.
+3. **Calidad Fotográfica:** El resultado final debe tener la calidad de una fotografía de alta gama.
+${licensePlateInstruction}${userInstructions}`;
 
       parts = [
-        { text: prompt },
         { inlineData: { data: backgroundBase64, mimeType: backgroundMimeType } },
         { inlineData: { data: carBase64, mimeType: carMimeType } },
+        { text: prompt },
       ];
     } else { // interior
       let kilometerInstruction = `4.  **Regla Especial para Cuentakilómetros:** Si la imagen es un primer plano de un cuadro de instrumentos (cuentakilómetros), es absolutamente crucial que NO AÑADAS ninguna luz de aviso o testigo que no estuviera ya encendida en la foto original. Limpia la pantalla y el plástico, pero mantén las luces de aviso y el kilometraje exactamente como están en la imagen de referencia.`;
@@ -67,7 +79,7 @@ Sigue estas reglas de forma OBLIGATORIA y con MÁXIMA PRIORIDAD:
     *   **Plásticos, Vinilos y Resto de Gomas:** CUALQUIER otra pieza de estos materiales (salpicadero, paneles de puerta, consolas) que se vea marrón, grisácea o descolorida por la suciedad, **DEBE ser recreada en un color NEGRO INTENSO, profundo y con acabado de fábrica.** No dudes. Si parece sucio y debería ser negro, hazlo negro.
 ${kilometerInstruction}
 
-El resultado final debe ser una imagen fotorrealista de un interior que luce mejor que nuevo. La reconstrucción total de alfombrillas a negro y la restauración del resto de plásticos es la clave del éxito.`;
+El resultado final debe ser una imagen fotorrealista de un interior que luce mejor que nuevo. La reconstrucción total de alfombrillas a negro y la restauración del resto de plásticos es la clave del éxito.${userInstructions}`;
       } else {
           prompt = `Tu tarea es realizar una restauración digital profesional de la imagen del interior de un coche. Es VITAL que mantengas el mismo ángulo de cámara, encuadre y composición de la foto original. Tu objetivo es presentar el interior en un estado impecable y listo para una revista.
 Los cambios deben ser exclusivamente los siguientes:
@@ -75,7 +87,7 @@ Los cambios deben ser exclusivamente los siguientes:
 2.  **Limpieza de Desorden:** Elimina CUALQUIER objeto que no sea parte intrínseca del coche (papeles, chalecos, botellas, ambientadores, etc.).
 3.  **Limpieza Detallada:** Realiza una limpieza digital exhaustiva. Elimina todo rastro de polvo, manchas, huellas, suciedad y marcas de uso en TODAS las superficies (salpicadero, asientos, volante, alfombrillas, etc.). Los materiales deben lucir como nuevos, pero conservando su textura y forma original.
 ${kilometerInstruction}
-El resultado final debe ser una imagen fotorrealista del mismo interior, pero en un estado de limpieza y conservación perfecto.`;
+El resultado final debe ser una imagen fotorrealista del mismo interior, pero en un estado de limpieza y conservación perfecto.${userInstructions}`;
       }
       parts = [
           { text: prompt },
