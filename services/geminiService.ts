@@ -74,7 +74,7 @@ Reglas cruciales:
 1. **Integración Perfecta:** El coche debe parecer que realmente está en esa escena. Presta máxima atención a la iluminación, las sombras proyectadas sobre el suelo y los reflejos en la carrocería del coche, que deben corresponder con el entorno.
 2. **No Recortar y Pegar:** Es fundamental que generes el coche de nuevo. No es un simple montaje. El coche debe adaptarse a la perspectiva y proporciones de la escena.
 3. **Calidad Fotográfica:** El resultado final debe tener la calidad de una fotografía de alta gama.
-4. **TAMAÑO Y ENCUADRE DEL COCHE (REGLA DE MÁXIMA PRIORIDAD):** Esta es la regla más importante. El objetivo es una **foto comercial de alto impacto**, no una simulación realista. Es **OBLIGATORIO** que generes el coche para que sea **mucho más grande y prominente** de lo que dictaría una perspectiva estricta. El coche debe **dominar la composición** y ocupar una porción significativa del encuadre. No dudes en sacrificar el realismo de la escala para conseguir un resultado donde el coche luzca imponente y sea el protagonista absoluto.
+4. **TAMAÑO Y ENCUADRE DEL COCHE (REGLA DE MÁXIMA PRIORIDAD):** El objetivo es una foto comercial de alto impacto. Tu primera tarea es analizar en detalle la perspectiva, profundidad, y los objetos de referencia en la imagen de fondo para determinar una escala perfectamente realista para el coche. La integración debe ser creíble. Una vez que hayas establecido esta escala base realista, aumenta el tamaño del coche en un 10-15% para darle un mayor protagonismo comercial, pero sin que la escena pierda su realismo. El coche debe ser el foco de atención principal, verse imponente y estar perfectamente integrado en el entorno.
 ${licensePlateInstruction}${userInstructions}`;
 
       parts = [
@@ -139,5 +139,59 @@ El resultado final debe ser una imagen fotorrealista del mismo interior, pero en
   } catch (error) {
     console.error('Error al llamar a la API de Gemini para generar la escena:', error);
     throw new Error('Error al generar la escena del coche con el modelo de IA.');
+  }
+}
+
+export async function regenerateScene(options: {
+  carBase64: string;
+  carMimeType: string;
+  backgroundBase64: string;
+  backgroundMimeType: string;
+  previousResultBase64: string;
+  additionalInstructions?: string;
+}): Promise<string | null> {
+  const { carBase64, carMimeType, backgroundBase64, backgroundMimeType, previousResultBase64, additionalInstructions } = options;
+  
+  try {
+    const ai = getAiClient();
+    
+    const userInstructions = (additionalInstructions && additionalInstructions.trim() !== '') 
+        ? `\n- **Instrucciones Adicionales del Usuario (Máxima Prioridad):** ${additionalInstructions}`
+        : '';
+
+    const prompt = `Tu tarea es refinar una imagen generada previamente para mejorar la integración del coche. Te proporciono tres imágenes en este orden: 1. El coche de referencia, 2. El fondo de referencia, 3. El resultado anterior que necesita mejoras.
+
+El objetivo es generar una nueva imagen que corrija principalmente el tamaño y la posición del coche en la escena, basándote en la siguiente regla:
+
+**REGLA DE MEJORA (MÁXIMA PRIORIDAD):**
+Analiza la perspectiva y profundidad del fondo (imagen 2) para determinar una escala realista para el coche (imagen 1). El resultado anterior (imagen 3) no acertó completamente. Tu nueva versión debe colocar el coche de forma creíble. Una vez establecida la escala realista, puedes aumentar su tamaño en un 10-15% para un mayor impacto comercial. La nueva imagen debe tener una iluminación, sombras y reflejos superiores a la versión anterior.
+${userInstructions}`;
+
+    const parts = [
+      { inlineData: { data: carBase64, mimeType: carMimeType } },
+      { inlineData: { data: backgroundBase64, mimeType: backgroundMimeType } },
+      { inlineData: { data: previousResultBase64, mimeType: 'image/jpeg' } },
+      { text: prompt },
+    ];
+    
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: { parts },
+      config: {
+        responseModalities: [Modality.IMAGE],
+      },
+    });
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        return part.inlineData.data;
+      }
+    }
+    
+    return null;
+
+  } catch (error) {
+    console.error('Error al llamar a la API de Gemini para regenerar la escena:', error);
+    throw new Error('Error al regenerar la escena del coche con el modelo de IA.');
   }
 }

@@ -7,6 +7,7 @@ interface ResultDisplayProps {
   loadingMessage: string;
   kilometers?: string;
   carModel?: string;
+  onRegenerate?: () => void;
 }
 
 const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
@@ -34,7 +35,7 @@ const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
 );
 
 
-export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultImage, error, loadingMessage, kilometers, carModel }) => {
+export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultImage, error, loadingMessage, kilometers, carModel, onRegenerate }) => {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -116,13 +117,23 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
       {displayImage && !isLoading && (
         <>
           <img src={displayImage} alt={carModel || 'Resultado generado'} className="w-full h-full object-contain" />
-          <a
-            href={displayImage}
-            download={fileName}
-            className="absolute bottom-5 right-5 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg z-20"
-          >
-            Descargar
-          </a>
+          <div className="absolute bottom-5 right-5 flex items-center space-x-3 z-20">
+            {onRegenerate && (
+                <button
+                onClick={onRegenerate}
+                className="bg-white/90 text-gray-800 px-5 py-2.5 rounded-lg font-semibold hover:bg-white transition-colors shadow-lg"
+                >
+                Mejorar
+                </button>
+            )}
+            <a
+                href={displayImage}
+                download={fileName}
+                className="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg"
+            >
+                Descargar
+            </a>
+          </div>
         </>
       )}
        {!isLoading && !displayImage && !error && (
