@@ -7,8 +7,6 @@ interface ResultDisplayProps {
   loadingMessage: string;
   kilometers?: string;
   carModel?: string;
-  sceneType: 'exterior' | 'interior';
-  onRegenerateBigger?: () => void;
 }
 
 const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
@@ -36,7 +34,7 @@ const ShimmerLoader: React.FC<{ message: string }> = ({ message }) => (
 );
 
 
-export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultImage, error, loadingMessage, kilometers, carModel, sceneType, onRegenerateBigger }) => {
+export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultImage, error, loadingMessage, kilometers, carModel }) => {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -101,8 +99,12 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
   const slugify = (text: string) => text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
   
   const fileName = carModel
-    ? `${slugify(carModel)}-generado-con-e-ai-studio.jpg`
-    : 'escena-coche-e-ai-studio.jpg';
+    ? `${slugify(carModel)}-generado-con-world-cars.jpg`
+    : 'escena-coche-world-cars.jpg';
+    
+  const altText = carModel
+    ? `${carModel} - Imagen generada para World Cars`
+    : 'Resultado generado para World Cars';
 
   return (
     <div className="relative w-full aspect-video bg-white border border-gray-200 rounded-2xl flex items-center justify-center overflow-hidden shadow-md">
@@ -117,24 +119,14 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ isLoading, resultI
       )}
       {displayImage && !isLoading && (
         <>
-          <img src={displayImage} alt={carModel || 'Resultado generado'} className="w-full h-full object-contain" />
-          <div className="absolute bottom-5 right-5 flex flex-col items-end space-y-3 z-20">
-            <a
-              href={displayImage}
-              download={fileName}
-              className="bg-gradient-to-r from-orange-500 to-pink-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg"
-            >
-              Descargar
-            </a>
-            {sceneType === 'exterior' && onRegenerateBigger && (
-               <button
-                  onClick={onRegenerateBigger}
-                  className="bg-white/80 backdrop-blur-sm text-gray-800 px-5 py-2.5 rounded-lg font-semibold hover:bg-white transition-colors shadow-lg border border-gray-300"
-              >
-                  Mejorar (10% más grande)
-              </button>
-            )}
-          </div>
+          <img src={displayImage} alt={altText} className="w-full h-full object-contain" />
+          <a
+            href={displayImage}
+            download={fileName}
+            className="absolute bottom-5 right-5 bg-gradient-to-r from-orange-500 to-pink-500 text-white px-5 py-2.5 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-lg z-20"
+          >
+            Descargar
+          </a>
         </>
       )}
        {!isLoading && !displayImage && !error && (
