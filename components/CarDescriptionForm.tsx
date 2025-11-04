@@ -1,11 +1,5 @@
 import React from 'react';
-
-export interface CarDescription {
-  make: string;
-  model: string;
-  year: string;
-  color: string;
-}
+import type { CarDescription } from '../services/geminiService';
 
 interface CarDescriptionFormProps {
   description: CarDescription;
@@ -15,9 +9,10 @@ interface CarDescriptionFormProps {
 export const CarDescriptionForm: React.FC<CarDescriptionFormProps> = ({ description, onDescriptionChange }) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     onDescriptionChange({
       ...description,
-      [e.target.name]: e.target.value
+      [name]: value
     });
   };
 

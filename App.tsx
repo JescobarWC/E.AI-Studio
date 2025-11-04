@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { ImageUploader } from './components/ImageUploader';
 import { ResultDisplay } from './components/ResultDisplay';
-import { generateScene, identifyCarModel, generateSceneFromDescription } from './services/geminiService';
+import { generateScene, generateSceneFromDescription, type CarDescription } from './services/geminiService';
 import { fileToBase64, urlToBase64 } from './utils/fileUtils';
-import { CarDescriptionForm, CarDescription } from './components/CarDescriptionForm';
+import { CarDescriptionForm } from './components/CarDescriptionForm';
 
 const App: React.FC = () => {
   const [sceneType, setSceneType] = useState<'exterior' | 'interior'>('exterior');
@@ -17,6 +17,7 @@ const App: React.FC = () => {
   const [isExtremeClean, setIsExtremeClean] = useState<boolean>(false);
   const [kilometers, setKilometers] = useState<string>('');
   const [additionalInstructions, setAdditionalInstructions] = useState<string>('');
+  const [carViewPerspective, setCarViewPerspective] = useState<'front' | 'side' | 'rear'>('front');
 
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -68,8 +69,6 @@ const App: React.FC = () => {
     setCarModel('');
 
     try {
-      let generatedImageBase64: string | null = null;
-      
       if (sceneType === 'exterior') {
         let backgroundBase64: string | undefined;
         let backgroundMimeType: string | undefined;
@@ -78,7 +77,7 @@ const App: React.FC = () => {
             backgroundBase64 = await fileToBase64(backgroundFile);
             backgroundMimeType = backgroundFile.type;
         } else if (backgroundInputMethod === 'url' && backgroundUrl) {
-            setLoadingMessage('Descargando imagen de fondo desde la URL...');
+            setLoadingMessage('Descargando imagen de fondo...');
             const urlData = await urlToBase64(backgroundUrl);
             backgroundBase64 = urlData.base64;
             backgroundMimeType = urlData.mimeType;
@@ -89,54 +88,47 @@ const App: React.FC = () => {
         }
 
         if (carInputMethod === 'upload' && carFile) {
-            setLoadingMessage('Identificando modelo del coche...');
             const carBase64 = await fileToBase64(carFile);
-            try {
-                const identifiedModel = await identifyCarModel(carBase64, carFile.type);
-                setCarModel(identifiedModel);
-            } catch (identificationError) {
-                console.warn('No se pudo identificar el modelo del coche, se usará un nombre de archivo genérico.', identificationError);
-            }
-            setLoadingMessage('La IA está creando tu escena, esto puede tardar un momento...');
-            generatedImageBase64 = await generateScene(
-                'exterior', carBase64, carFile.type,
-                backgroundBase64, backgroundMimeType,
-                undefined, licensePlate, undefined, undefined, additionalInstructions
-            );
+            const { generatedImageBase64, identifiedModel } = await generateScene({
+                sceneType: 'exterior',
+                carImageBase64: carBase64,
+                carMimeType: carFile.type,
+                backgroundImageBase64: backgroundBase64,
+                backgroundMimeType,
+                licensePlate,
+                additionalInstructions,
+                carViewPerspective,
+                onProgress: setLoadingMessage,
+            });
+            setCarModel(identifiedModel);
+            setResultImage(`data:image/jpeg;base64,${generatedImageBase64}`);
         } else { // description
             const modelName = `${carDescription.make} ${carDescription.model} ${carDescription.year} ${carDescription.color}`.trim();
             setCarModel(modelName);
-            setLoadingMessage('La IA está generando tu coche desde cero, esto puede tardar un momento...');
-            generatedImageBase64 = await generateSceneFromDescription({
+            setLoadingMessage('La IA está generando tu coche desde cero...');
+            const generatedImageBase64 = await generateSceneFromDescription({
                 description: carDescription,
                 backgroundBase64, backgroundMimeType,
-                licensePlate, additionalInstructions
+                licensePlate, additionalInstructions, carViewPerspective,
             });
+            setResultImage(`data:image/jpeg;base64,${generatedImageBase64}`);
         }
 
       } else { // Interior
-        setLoadingMessage('Identificando modelo del coche...');
         const carBase64 = await fileToBase64(carFile!);
-        try {
-            const identifiedModel = await identifyCarModel(carBase64, carFile!.type);
-            setCarModel(identifiedModel);
-        } catch (identificationError) {
-            console.warn('No se pudo identificar el modelo del coche.', identificationError);
-        }
-        setLoadingMessage('La IA está creando tu escena interior...');
-        generatedImageBase64 = await generateScene(
-          'interior', carBase64, carFile!.type,
-          undefined, undefined, undefined, undefined,
-          isExtremeClean, kilometers, additionalInstructions
-        );
-      }
-
-
-      if (generatedImageBase64) {
+        const { generatedImageBase64, identifiedModel } = await generateScene({
+            sceneType: 'interior',
+            carImageBase64: carBase64,
+            carMimeType: carFile!.type,
+            isExtremeClean,
+            kilometers,
+            additionalInstructions,
+            onProgress: setLoadingMessage,
+        });
+        setCarModel(identifiedModel);
         setResultImage(`data:image/jpeg;base64,${generatedImageBase64}`);
-      } else {
-        setError('El modelo no devolvió una imagen. Por favor, inténtalo de nuevo.');
       }
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Ocurrió un error desconocido.';
       setError(`Error: ${errorMessage}. Asegúrate de que la URL sea una imagen directa y accesible.`);
@@ -208,7 +200,19 @@ const App: React.FC = () => {
               )}
 
               {((sceneType === 'exterior' && carInputMethod === 'upload') || sceneType === 'interior') ? (
-                  <ImageUploader onImageUpload={handleCarUpload} label={sceneType === 'exterior' ? "Sube una imagen del coche" : "Sube una imagen del interior"} />
+                  <>
+                    <ImageUploader onImageUpload={handleCarUpload} label={sceneType === 'exterior' ? "Sube una imagen del coche" : "Sube una imagen del interior"} />
+                    {sceneType === 'exterior' && carFile && (
+                        <div className="mt-6">
+                            <h3 className="text-lg font-semibold mb-3 text-gray-700">Perspectiva del Coche</h3>
+                            <div className="flex rounded-lg bg-gray-100 p-1">
+                                <button onClick={() => setCarViewPerspective('front')} className={`w-full py-2 px-3 text-sm font-semibold rounded-md transition-colors ${carViewPerspective === 'front' ? 'bg-white text-orange-600 shadow' : 'text-gray-500 hover:bg-gray-200'}`}>Frontal / 3/4</button>
+                                <button onClick={() => setCarViewPerspective('side')} className={`w-full py-2 px-3 text-sm font-semibold rounded-md transition-colors ${carViewPerspective === 'side' ? 'bg-white text-orange-600 shadow' : 'text-gray-500 hover:bg-gray-200'}`}>Lateral</button>
+                                <button onClick={() => setCarViewPerspective('rear')} className={`w-full py-2 px-3 text-sm font-semibold rounded-md transition-colors ${carViewPerspective === 'rear' ? 'bg-white text-orange-600 shadow' : 'text-gray-500 hover:bg-gray-200'}`}>Trasera / 3/4</button>
+                            </div>
+                        </div>
+                    )}
+                  </>
               ) : (
                 <CarDescriptionForm description={carDescription} onDescriptionChange={setCarDescription} />
               )}
