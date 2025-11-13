@@ -1,12 +1,8 @@
-import { GoogleGenAI, Modality } from "@google/genai";
-import { worldcarsLogo } from '../assets/worldcarsLogo';
+// FIX: Corrected file content by removing XML wrapper that was causing parsing errors.
+import { GoogleGenAI, Modality, GenerateContentResponse } from "@google/genai";
 
-// Initialize the Google Gemini AI client
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-/**
- * Describes the properties of a car for generation.
- */
 export interface CarDescription {
   make: string;
   model: string;
@@ -14,225 +10,289 @@ export interface CarDescription {
   color: string;
 }
 
-type CarViewPerspective = 'front' | 'side' | 'rear';
-
-/**
- * Analyzes a car image and returns a detailed textual description.
- * @param carImageBase64 The base64 encoded string of the car image.
- * @param mimeType The MIME type of the car image.
- * @returns A promise that resolves to a detailed description of the car.
- */
-const _getCarDetailsFromImage = async (carImageBase64: string, mimeType: string): Promise<string> => {
-    const model = 'gemini-2.5-flash';
-    const imagePart = { inlineData: { data: carImageBase64, mimeType } };
-    const textPart = {
-        text: `Analiza este coche y proporciona una descripción detallada para un artista de CGI. Incluye: marca, modelo exacto, año de fabricación aproximado, color específico (ej. 'Blanco Nacarado', 'Gris Pirineos Metalizado'), tipo de llantas, y cualquier característica visible distintiva (ej. 'techo solar panorámico', 'barras de techo negras'). Responde de forma concisa en una sola línea.`,
-    };
-
-    try {
-        const response = await ai.models.generateContent({
-            model: model,
-            contents: { parts: [imagePart, textPart] },
-        });
-        const text = response.text;
-        if (!text) throw new Error('El modelo de análisis no devolvió texto.');
-        return text.trim();
-    } catch (error) {
-        console.error("Error getting car details:", error);
-        throw new Error("Error al analizar los detalles del coche.");
-    }
-};
-
-/**
- * Generates the main prompt for creating a car scene from a text description.
- */
-const _createExteriorPromptFromText = (
-    carDetails: string,
-    carViewPerspective: CarViewPerspective,
-    licensePlate: string | undefined,
-    additionalInstructions: string | undefined,
-    isFromDescription: boolean = false
-): string => {
-    let prompt = `**TU MISIÓN:** Eres un fotógrafo y artista CGI de élite. Tu trabajo es crear una FOTOGRAFÍA COMPLETAMENTE NUEVA DESDE CERO.
-
-**EL COCHE A CREAR:** ${carDetails}.
-
-**LA ESCENA:** La imagen de fondo proporcionada.
-
-**REGLAS DE EJECUCIÓN (INQUEBRANTABLES):**
-1. **CREACIÓN DESDE CERO:** NO tienes acceso a ninguna foto original del coche. DEBES GENERARLO DESDE CERO basándote únicamente en la descripción textual.
-2. **LA POSE ES TODO (PRIORIDAD #1):** `;
-
-    switch (carViewPerspective) {
-        case 'front':
-            prompt += `La pose final DEBE ser una "pose dinámica de tres cuartos frontal", mostrando el lado del conductor. La característica más importante de esta pose es que las ruedas delanteras DEBEN estar giradas ligeramente hacia la cámara para mostrar el diseño de la llanta. No generes el coche con las ruedas rectas.`;
-            break;
-        case 'side':
-            prompt += `La pose final DEBE ser una vista de perfil lateral perfecta del coche.`;
-            break;
-        case 'rear':
-            prompt += `La pose final DEBE ser una "pose dinámica de tres cuartos trasera", mostrando la parte trasera y el lateral del coche.`;
-            break;
-    }
-
-    prompt += `
-3. **COMPOSICIÓN Y ESCALA (MÁXIMA PRIORIDAD):** El coche es la estrella. Debe verse grande, imponente y ocupar una porción significativa del encuadre. El coche debe ser alto en el plano. Como referencia visual clave, el techo del coche debe posicionarse casi tocando el final superior de las barras de luz LED verticales del fondo del estudio. Debe estar completamente dentro del encuadre, con las ruedas firmemente plantadas en el suelo.
-4. **LA LUZ ES LA ÚNICA VERDAD:** El coche debe ser RE-ILUMINADO DESDE CERO, usando exclusivamente las luces de la imagen de fondo. IGNORA cualquier iluminación que pudieras inferir de la descripción. Los reflejos en la carrocería deben mostrar el entorno. Las sombras deben ser perfectas y realistas.
-5. **REALISMO FOTOGRÁFICO:** El resultado debe ser indistinguible de una fotografía real de alta gama. Presta atención a cada detalle: texturas de los materiales, reflejos en los cristales, el brillo de la pintura, etc.
-`;
-    
-    if (licensePlate) {
-        prompt += `\n6. **MATRÍCULA:** El coche debe llevar la matrícula "${licensePlate}".`;
-        if (isFromDescription) {
-            prompt += ` El portamatrículas es negro y debe incluir el logo de 'WORLDCARS' (proporcionado en la tercera imagen) en el marco.`;
-        }
-    } else {
-        if (isFromDescription) {
-            prompt += `\n6. **PORTAMATRÍCULAS:** El coche debe tener un portamatrículas completamente negro. Coloca el logo de 'WORLDCARS' (proporcionado en la tercera imagen) centrado en este portamatrículas.`;
-        } else {
-            prompt += `\n6. **PORTAMATRÍCULAS:** El coche debe tener un portamatrículas negro y vacío, sin ninguna inscripción.`;
-        }
-    }
-
-    if (additionalInstructions) {
-        prompt += `\n7. **INSTRUCCIONES ADICIONALES DEL USUARIO:** ${additionalInstructions}`;
-    }
-
-    return prompt;
-};
-
-
 interface GenerateSceneParams {
-    sceneType: 'exterior' | 'interior';
-    carImageBase64: string;
-    carMimeType: string;
-    backgroundImageBase64?: string;
-    backgroundMimeType?: string;
-    licensePlate?: string;
-    isExtremeClean?: boolean;
-    kilometers?: string;
-    additionalInstructions?: string;
-    carViewPerspective?: CarViewPerspective;
-    onProgress?: (message: string) => void;
+  sceneType: 'exterior' | 'interior';
+  carImageBase64: string;
+  carMimeType: string;
+  backgroundImageBase64?: string;
+  backgroundMimeType?: string;
+  licensePlate?: string;
+  isExtremeClean?: boolean;
+  kilometers?: string;
+  additionalInstructions?: string;
+  carViewPerspective?: 'front' | 'side' | 'rear';
+  interiorViewType?: 'general' | 'detail';
+  onProgress?: (message: string) => void;
 }
-/**
- * Generates a scene with a car.
- */
-export const generateScene = async (params: GenerateSceneParams): Promise<{ generatedImageBase64: string, identifiedModel: string }> => {
-    const {
-        sceneType, carImageBase64, carMimeType, backgroundImageBase64, backgroundMimeType,
-        licensePlate, isExtremeClean, kilometers, additionalInstructions, carViewPerspective, onProgress
-    } = params;
-
-    const imageModel = 'gemini-2.5-flash-image';
-
-    if (sceneType === 'exterior') {
-        if (!backgroundImageBase64 || !backgroundMimeType || !carViewPerspective) {
-            throw new Error('Para escenas exteriores se requiere fondo y perspectiva.');
-        }
-
-        onProgress?.('Analizando el coche de referencia...');
-        const carDetails = await _getCarDetailsFromImage(carImageBase64, carMimeType);
-        
-        onProgress?.('Generando el coche desde cero en la nueva escena...');
-        const prompt = _createExteriorPromptFromText(carDetails, carViewPerspective, licensePlate, additionalInstructions, false);
-        
-        const backgroundImagePart = { inlineData: { data: backgroundImageBase64, mimeType: backgroundMimeType } };
-        const parts = [backgroundImagePart, { text: prompt }];
-
-        try {
-            const response = await ai.models.generateContent({
-                model: imageModel,
-                contents: { parts },
-                config: { responseModalities: [Modality.IMAGE] },
-            });
-            const firstPart = response.candidates?.[0]?.content?.parts?.[0];
-            if (firstPart?.inlineData) {
-                return { generatedImageBase64: firstPart.inlineData.data, identifiedModel: carDetails };
-            }
-            throw new Error('La respuesta del modelo de imagen no contenía datos de imagen.');
-        } catch (error) {
-            console.error("Error generating exterior scene from text:", error);
-            throw new Error("Error al comunicarse con la IA para generar la escena exterior.");
-        }
-    } else { // Interior
-        onProgress?.('Mejorando la escena interior...');
-        const carImagePart = { inlineData: { data: carImageBase64, mimeType: carMimeType } };
-        let prompt = `Esta es una foto del interior de un coche. Necesito que generes una nueva imagen del mismo interior pero mejorada y fotorrealista.`;
-        if (isExtremeClean) {
-            prompt += ` El interior debe estar extremadamente limpio, como si acabara de salir de un detallado profesional. Sin polvo, sin manchas, todo impecable.`;
-        } else {
-            prompt += ` El interior debe verse limpio y en excelentes condiciones.`;
-        }
-        if (kilometers) {
-            prompt += ` El odómetro en el panel de instrumentos debe mostrar aproximadamente "${kilometers}" kilómetros.`;
-        }
-        if (additionalInstructions) {
-            prompt += ` Instrucciones adicionales: ${additionalInstructions}`;
-        }
-        
-        const parts = [carImagePart, { text: prompt }];
-
-        try {
-            const response = await ai.models.generateContent({
-                model: imageModel,
-                contents: { parts },
-                config: { responseModalities: [Modality.IMAGE] },
-            });
-            const firstPart = response.candidates?.[0]?.content?.parts?.[0];
-            if (firstPart?.inlineData) {
-                // For interior, model identification is less critical, we can return a generic name.
-                return { generatedImageBase64: firstPart.inlineData.data, identifiedModel: 'Interior de coche' };
-            }
-            throw new Error('La respuesta del modelo no contenía una imagen.');
-        } catch(error) {
-            console.error("Error generating interior scene:", error);
-            throw new Error("Error al comunicarse con la IA para generar la escena interior.");
-        }
-    }
-};
 
 interface GenerateSceneFromDescriptionParams {
     description: CarDescription;
-    backgroundBase64: string;
+    backgroundImageBase64: string;
     backgroundMimeType: string;
-    licensePlate?: string;
-    additionalInstructions?: string;
-    carViewPerspective: CarViewPerspective;
+    licensePlate: string;
+    additionalInstructions: string;
+    carViewPerspective: 'front' | 'side' | 'rear';
 }
 
-/**
- * Generates a car scene from a text description and a background image.
- */
-export const generateSceneFromDescription = async ({
+const findImagePart = (response: GenerateContentResponse): string => {
+    const imagePart = response.candidates?.[0]?.content?.parts?.find(part => part.inlineData?.data);
+    if (imagePart?.inlineData?.data) {
+        return imagePart.inlineData.data;
+    }
+    throw new Error('La respuesta del modelo de imagen no contenía datos de imagen.');
+};
+
+export async function generateScene({
+  sceneType,
+  carImageBase64,
+  carMimeType,
+  backgroundImageBase64,
+  backgroundMimeType,
+  licensePlate,
+  isExtremeClean,
+  kilometers,
+  additionalInstructions,
+  carViewPerspective,
+  interiorViewType,
+  onProgress = () => {},
+}: GenerateSceneParams): Promise<{ generatedImageBase64: string; identifiedModel: string; }> {
+  
+  const carPart = {
+    inlineData: {
+      mimeType: carMimeType,
+      data: carImageBase64,
+    },
+  };
+
+  if (sceneType === 'exterior') {
+      onProgress('Analizando detalles únicos del vehículo...');
+
+      if (!backgroundImageBase64 || !backgroundMimeType || !carViewPerspective || licensePlate === undefined || additionalInstructions === undefined) {
+          throw new Error("Faltan parámetros para la generación de la escena exterior.");
+      }
+      
+      const backgroundPart = {
+        inlineData: {
+            data: backgroundImageBase64,
+            mimeType: backgroundMimeType,
+        },
+      };
+
+      // PASO 1: Análisis detallado del coche para extraer características en formato JSON.
+      const analysisModel = 'gemini-2.5-pro';
+      const analysisPrompt = `
+      Analiza la imagen del coche y extrae sus características visuales con extremo detalle para que un artista CGI pueda recrearlo a la perfección.
+      Tu respuesta DEBE ser un objeto JSON con la siguiente estructura:
+      {
+        "make": "Marca del coche",
+        "model": "Modelo del coche",
+        "year": "Año aproximado de fabricación",
+        "color": "Color principal de la carrocería",
+        "uniqueDetails": [
+          "Lista de detalles únicos y específicos. Ej: 'Retrovisores de color blanco'",
+          "Ej: 'Llantas de aleación de 5 radios dobles en dos tonos (plata y negro)'",
+          "Ej: 'Anagrama floral de color blanco en el pilar C'"
+        ]
+      }
+      Si no puedes identificar alguna característica, déjala como una cadena vacía. Sé muy específico con los detalles únicos.`;
+      
+      const analysisResponse = await ai.models.generateContent({
+        model: analysisModel,
+        contents: { parts: [carPart, { text: analysisPrompt }] },
+      });
+
+      let carDetails: CarDescription & { uniqueDetails: string[] } = {
+          make: '', model: '', year: '', color: '', uniqueDetails: []
+      };
+      let identifiedModel = 'Vehículo no identificado';
+
+      try {
+          const jsonText = analysisResponse.text.replace(/```json|```/g, '').trim();
+          const parsedJson = JSON.parse(jsonText);
+          carDetails = { ...carDetails, ...parsedJson };
+          if (carDetails.make && carDetails.model) {
+              identifiedModel = `${carDetails.make} ${carDetails.model} ${carDetails.year}`.trim();
+          }
+      } catch (e) {
+          console.error("Error al analizar los detalles del coche (JSON):", e);
+          throw new Error('No se pudieron analizar los detalles únicos del vehículo. Inténtalo con otra imagen.');
+      }
+
+      onProgress('Generando escena fotorrealista...');
+
+      // PASO 2: Generar la imagen usando la descripción de texto, sin la imagen original del coche.
+      let perspectiveText = '';
+      if (carViewPerspective === 'front') {
+          perspectiveText = 'una pose dinámica de tres cuartos frontal, mostrando el lado del copiloto (apuntando hacia la izquierda de la imagen), con las ruedas delanteras ligeramente giradas para mostrar la llanta';
+      } else if (carViewPerspective === 'side') {
+          perspectiveText = 'una vista de perfil lateral estricta, llenando el encuadre para que el coche se vea grande y dominante en la imagen.';
+      } else { // rear
+          perspectiveText = `una **toma de tres cuartos trasera (mostrando más el lateral que la parte trasera directa)**. El ángulo de la cámara debe ser **bajo y dramático** para que el coche parezca **dominante y poderoso**, llenando la mayor parte del encuadre. El resultado debe ser una imagen imponente.`;
+      }
+
+      const generationPrompt = `
+      Eres un director de fotografía y artista CGI para un concesionario de coches de lujo llamado "World Cars".
+      Tu misión es crear la foto de anuncio "heroica" y definitiva a partir de una descripción detallada y una imagen de fondo (IMAGEN 1).
+
+      **DESCRIPCIÓN DEL COCHE A GENERAR:**
+      -   **Vehículo**: ${carDetails.make} ${carDetails.model} (${carDetails.year})
+      -   **Color**: ${carDetails.color}
+      -   **DETALLES ÚNICOS A REPLICAR CON MÁXIMA PRECISIÓN**: ${carDetails.uniqueDetails.length > 0 ? carDetails.uniqueDetails.join(', ') : 'Ninguno especificado, usar la versión de serie.'}
+
+      **REGLAS CRÍTICAS DE COMPOSICIÓN Y REALISMO:**
+      1.  **Generación Precisa**: Genera el coche descrito con el máximo nivel de fotorrealismo. El modelo, año, color y **TODOS los detalles únicos** deben ser precisos. El coche debe estar en un estado impecable y perfecto.
+      2.  **Análisis del Fondo (IMAGEN 1)**: Antes de colocar el coche, analiza la composición de la IMAGEN 1. Identifica la superficie del suelo, la perspectiva y si existe una **plataforma giratoria**.
+      3.  **Posicionamiento (MÁXIMA PRIORIDAD)**:
+          -   El coche debe estar **firmemente plantado en el suelo** de la IMAGEN 1.
+          -   **Si identificas una plataforma giratoria, es absolutamente crucial que las CUATRO RUEDAS del coche se sitúen DENTRO de los límites de dicha plataforma.**
+          -   La iluminación, las sombras y los reflejos del coche deben coincidir perfectamente con la luz ambiental de la IMAGEN 1.
+      4.  **Perspectiva y Encuadre**: La perspectiva del coche debe ser de **${perspectiveText}**. El ángulo de la cámara debe ser un ligero contrapicado para que el coche parezca **grande, imponente y heroico**.
+      5.  **Matrícula/Logo**: ${licensePlate ? `Añade al coche una matrícula con el texto: "${licensePlate}". La matrícula debe tener un diseño europeo estándar (banda azul a la izquierda) sobre un portamatrículas negro.` : `El coche no debe tener matrícula. En su lugar, el portamatrículas debe ser negro y mostrar el logo 'WORLDCARS'. Este logo consiste en la palabra 'WORLDCARS' en un gradiente de amarillo a naranja, con una silueta de coche por encima y un globo terráqueo estilizado dentro de la 'O'.`}
+      6.  **Instrucciones Adicionales**: ${additionalInstructions || 'El resultado final debe ser una foto de anuncio premium, con una calidad visual espectacular.'}
+
+      Genera la imagen final.`;
+
+      const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: {
+              parts: [
+                  backgroundPart, // Solo la imagen de fondo
+                  { text: generationPrompt },
+              ],
+          },
+          config: {
+              responseModalities: [Modality.IMAGE],
+          },
+      });
+      const generatedImageBase64 = findImagePart(response);
+
+      return { generatedImageBase64, identifiedModel };
+
+  } else { // Interior
+    onProgress('Identificando modelo de coche...');
+
+    const modelIdentificationModel = 'gemini-2.5-pro';
+    const modelPrompt = 'Identifica la marca, modelo y año del coche en la imagen. Responde solo con MARCA MODELO AÑO. Por ejemplo: "Volkswagen Golf 2022". Si no puedes identificarlo con certeza, responde "Vehículo no identificado".';
+    
+    const modelResponse = await ai.models.generateContent({
+        model: modelIdentificationModel,
+        contents: { parts: [carPart, { text: modelPrompt }] },
+    });
+    
+    const identifiedModel = modelResponse.text?.trim() ?? 'Vehículo no identificado';
+
+    onProgress('Limpiando el interior del vehículo...');
+
+    let interiorPrompt: string;
+
+    if (interiorViewType === 'detail') {
+        interiorPrompt = `
+Eres un retocador digital de élite, especializado en fotografía de producto para catálogos de coches de lujo.
+Tu tarea es analizar y perfeccionar esta **FOTO DE DETALLE** del interior de un coche.
+
+Reglas Inquebrantables:
+1.  **ENCUADRE FIJO (MÁXIMA PRIORIDAD):** Es un error crítico si alteras el encuadre. **NO PUEDES** inventar, generar o añadir ninguna parte del coche que no sea visible en la foto original. Tu trabajo se limita exclusivamente a lo que se ve en la imagen.
+2.  **RE-ILUMINACIÓN DE ESTUDIO**: IGNORA la iluminación original. RE-ILUMINA el detalle desde cero con una luz de estudio suave, difusa y profesional que resalte las texturas y la calidad de los materiales.
+3.  **LIMPIEZA Y RESTAURACIÓN**: Limpia cada superficie visible a la perfección. ${isExtremeClean ? `Restaura plásticos y gomas a un negro profundo y elimina cualquier signo de desgaste.` : ''}
+4.  **PANTALLAS VIBRANTES**: Si hay pantallas (cuentakilómetros, infotainment), haz que se vean nítidas, con colores vibrantes y un brillo atractivo.
+5.  **VISTAS EXTERIORES**: Reemplaza cualquier vista del exterior a través de las ventanillas con un fondo de estudio gris suave y neutro.
+${kilometers ? `6.  **CUENTAKILÓMETROS**: Ajusta el cuentakilómetros para que muestre exactamente "${kilometers} km".` : ''}
+7.  **Instrucciones Adicionales**: ${additionalInstructions || 'El resultado debe ser una imagen de detalle súper atractiva y de alta calidad.'}
+
+Genera la imagen del detalle del interior.`;
+    } else { // general view
+        interiorPrompt = `
+Eres un experto en detallado de coches para un concesionario premium.
+Tu tarea es limpiar y rejuvenecer el interior del coche de la imagen.
+
+Reglas:
+1.  **Iluminación de Estudio (Prioridad #1)**: IGNORA por completo la iluminación original de la foto. **RE-ILUMINA todo el interior desde cero** con una iluminación de estudio fotográfico profesional. La luz debe ser suave, difusa y uniforme, sin sombras duras ni reflejos extraños. El objetivo es que el interior se vea premium y lujoso, resaltando la calidad de los materiales.
+2.  **Limpieza Profunda**: Realiza una limpieza exhaustiva. Elimina cualquier suciedad, mancha, polvo o desorden. Deja todas las superficies (salpicadero, asientos, alfombrillas, puertas) impecables, como si el coche fuera nuevo.
+${isExtremeClean ? '3. **Limpieza Extrema con RESTAURACIÓN PROFUNDA**: Además de una limpieza impecable, debes restaurar los materiales a su estado de fábrica. Presta especial atención a los plásticos, gomas y molduras. Aquellas partes que se vean desgastadas, descoloridas o que hayan adquirido tonos marrones por el sol, deben ser restauradas a su color negro o gris oscuro original y profundo, con un acabado satinado de coche nuevo.' : ''}
+4.  **Vistas Exteriores (Importante)**: Reemplaza CUALQUIER vista del exterior que se vea a través de las ventanillas, parabrisas o luneta trasera con un fondo de estudio de un gris suave y neutro. El objetivo es aislar el interior y eliminar cualquier distracción del exterior.
+5.  **Mantener Originalidad**: No cambies el color, los materiales ni el diseño del interior. El objetivo es limpiar y restaurar, no modificar.
+${kilometers ? `6.  **Cuentakilómetros**: Si es visible el cuadro de instrumentos, ajusta el cuentakilómetros para que muestre exactamente "${kilometers} km". Si no es visible, ignora esta instrucción.` : ''}
+7.  **Instrucciones Adicionales**: ${additionalInstructions || 'El resultado final debe ser una imagen que haga que el interior parezca espacioso, limpio y muy atractivo.'}
+
+Genera la imagen del interior limpio y detallado.`;
+    }
+
+    const imageGenerationModel = 'gemini-2.5-flash-image';
+    const response = await ai.models.generateContent({
+        model: imageGenerationModel,
+        contents: {
+            parts: [
+                carPart,
+                { text: interiorPrompt },
+            ],
+        },
+        config: {
+            responseModalities: [Modality.IMAGE],
+        },
+    });
+
+    const generatedImageBase64 = findImagePart(response);
+    return { generatedImageBase64, identifiedModel };
+  }
+}
+
+
+export async function generateSceneFromDescription({
     description,
-    backgroundBase64,
+    backgroundImageBase64,
     backgroundMimeType,
     licensePlate,
     additionalInstructions,
     carViewPerspective,
-}: GenerateSceneFromDescriptionParams): Promise<string> => {
-    const carDetails = [description.make, description.model, description.year, description.color].filter(Boolean).join(' ');
-    const prompt = _createExteriorPromptFromText(carDetails, carViewPerspective, licensePlate, additionalInstructions, true);
+}: GenerateSceneFromDescriptionParams): Promise<string> {
 
-    const backgroundImagePart = { inlineData: { data: backgroundBase64, mimeType: backgroundMimeType } };
-    const logoImagePart = { inlineData: { data: worldcarsLogo.base64, mimeType: worldcarsLogo.mimeType } };
+    const backgroundPart = {
+        inlineData: {
+            data: backgroundImageBase64,
+            mimeType: backgroundMimeType,
+        },
+    };
 
-    const parts = [backgroundImagePart, { text: prompt }, logoImagePart];
-
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
-            contents: { parts },
-            config: { responseModalities: [Modality.IMAGE] },
-        });
-        const firstPart = response.candidates?.[0]?.content?.parts?.[0];
-        if (firstPart?.inlineData) {
-            return firstPart.inlineData.data;
-        }
-        throw new Error('La respuesta del modelo no contenía una imagen.');
-    } catch(error) {
-        console.error("Error generating scene from description:", error);
-        throw new Error("Error al comunicarse con la IA para generar la escena a partir de la descripción.");
+    let perspectiveText = '';
+    if (carViewPerspective === 'front') {
+        perspectiveText = 'una pose dinámica de tres cuartos frontal, mostrando el lado del copiloto (apuntando hacia la izquierda de la imagen), con las ruedas delanteras ligeramente giradas para mostrar la llanta';
+    } else if (carViewPerspective === 'side') {
+        perspectiveText = 'una vista de perfil lateral estricta, llenando el encuadre para que el coche se vea grande y dominante en la imagen.';
+    } else { // rear
+        perspectiveText = `una **toma de tres cuartos trasera (mostrando más el lateral que la parte trasera directa)**. El ángulo de la cámara debe ser **bajo y dramático** para que el coche parezca **dominante y poderoso**, llenando la mayor parte del encuadre. El resultado debe ser una imagen imponente.`;
     }
-};
+
+    const carGenPrompt = `
+Eres un director de fotografía y artista CGI para un concesionario de coches de lujo llamado "World Cars".
+Tu misión es crear la foto de anuncio "heroica" y definitiva. La imagen debe hacer que el cliente desee subirse al coche.
+
+Descripción del Coche a Generar:
+-   **Marca**: ${description.make}
+-   **Modelo**: ${description.model}
+-   **Año**: ${description.year}
+-   **Color**: ${description.color}
+
+Reglas Inquebrantables:
+1.  **Plano y Composición (Máxima Prioridad)**: La toma debe ser un **plano cercano con un ligero contrapicado**. Este ángulo es esencial para que el coche parezca **grande, imponente y heroico**. El coche debe estar perfectamente plantado en el suelo.
+2.  **Generación Realista**: Genera el coche descrito con el máximo nivel de fotorrealismo. El modelo, año y color deben ser precisos. El coche debe estar en un estado impecable y perfecto.
+3.  **Perspectiva**: La perspectiva del coche generado debe ser de ${perspectiveText}.
+4.  **Matrícula/Logo**: ${licensePlate ? `Añade al coche una matrícula con el texto: "${licensePlate}". La matrícula debe tener un diseño europeo estándar (banda azul a la izquierda) sobre un portamatrículas negro.` : `El coche no debe tener matrícula. En su lugar, el portamatrículas debe ser negro y mostrar el logo 'WORLDCARS'. Este logo consiste en la palabra 'WORLDCARS' en un gradiente de amarillo a naranja, con una silueta de coche por encima y un globo terráqueo estilizado dentro de la 'O'.`}
+5.  **Instrucciones Adicionales**: ${additionalInstructions || 'El resultado final debe ser una foto de anuncio premium, con una calidad visual espectacular.'}
+
+Genera la imagen final con estas directrices.`;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+            parts: [
+                backgroundPart,
+                { text: carGenPrompt },
+            ],
+        },
+        config: {
+            responseModalities: [Modality.IMAGE],
+        },
+    });
+
+    return findImagePart(response);
+}

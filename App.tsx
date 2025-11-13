@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [kilometers, setKilometers] = useState<string>('');
   const [additionalInstructions, setAdditionalInstructions] = useState<string>('');
   const [carViewPerspective, setCarViewPerspective] = useState<'front' | 'side' | 'rear'>('front');
+  const [interiorViewType, setInteriorViewType] = useState<'general' | 'detail'>('general');
 
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -106,9 +107,10 @@ const App: React.FC = () => {
             const modelName = `${carDescription.make} ${carDescription.model} ${carDescription.year} ${carDescription.color}`.trim();
             setCarModel(modelName);
             setLoadingMessage('La IA está generando tu coche desde cero...');
+            // FIX: Corrected property name from backgroundBase64 to backgroundImageBase64 to match the function signature.
             const generatedImageBase64 = await generateSceneFromDescription({
                 description: carDescription,
-                backgroundBase64, backgroundMimeType,
+                backgroundImageBase64: backgroundBase64, backgroundMimeType,
                 licensePlate, additionalInstructions, carViewPerspective,
             });
             setResultImage(`data:image/jpeg;base64,${generatedImageBase64}`);
@@ -123,6 +125,7 @@ const App: React.FC = () => {
             isExtremeClean,
             kilometers,
             additionalInstructions,
+            interiorViewType,
             onProgress: setLoadingMessage,
         });
         setCarModel(identifiedModel);
@@ -200,65 +203,99 @@ const App: React.FC = () => {
               )}
 
               {((sceneType === 'exterior' && carInputMethod === 'upload') || sceneType === 'interior') ? (
-                  <>
-                    <ImageUploader onImageUpload={handleCarUpload} label={sceneType === 'exterior' ? "Sube una imagen del coche" : "Sube una imagen del interior"} />
-                    {sceneType === 'exterior' && carFile && (
-                        <div className="mt-6">
-                            <h3 className="text-lg font-semibold mb-3 text-gray-700">Perspectiva del Coche</h3>
-                            <div className="flex rounded-lg bg-gray-100 p-1">
-                                <button onClick={() => setCarViewPerspective('front')} className={`w-full py-2 px-3 text-sm font-semibold rounded-md transition-colors ${carViewPerspective === 'front' ? 'bg-white text-orange-600 shadow' : 'text-gray-500 hover:bg-gray-200'}`}>Frontal / 3/4</button>
-                                <button onClick={() => setCarViewPerspective('side')} className={`w-full py-2 px-3 text-sm font-semibold rounded-md transition-colors ${carViewPerspective === 'side' ? 'bg-white text-orange-600 shadow' : 'text-gray-500 hover:bg-gray-200'}`}>Lateral</button>
-                                <button onClick={() => setCarViewPerspective('rear')} className={`w-full py-2 px-3 text-sm font-semibold rounded-md transition-colors ${carViewPerspective === 'rear' ? 'bg-white text-orange-600 shadow' : 'text-gray-500 hover:bg-gray-200'}`}>Trasera / 3/4</button>
-                            </div>
-                        </div>
-                    )}
-                  </>
+                  <ImageUploader onImageUpload={handleCarUpload} label={sceneType === 'exterior' ? "Sube una imagen del coche" : "Sube una imagen del interior"} />
               ) : (
                 <CarDescriptionForm description={carDescription} onDescriptionChange={setCarDescription} />
               )}
             </div>
+
+            {sceneType === 'exterior' && (
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold mb-3 text-gray-700 tracking-wide border-b border-gray-200 pb-3">2. Perspectiva del Coche</h2>
+                  <div className="flex mt-4 rounded-lg bg-gray-100 p-1">
+                      <button
+                          onClick={() => setCarViewPerspective('front')}
+                          className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${carViewPerspective === 'front' ? 'bg-orange-500/90 text-white shadow' : 'text-gray-500 hover:bg-gray-200'}`}
+                      >
+                          Delantera
+                      </button>
+                      <button
+                          onClick={() => setCarViewPerspective('side')}
+                          className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${carViewPerspective === 'side' ? 'bg-orange-500/90 text-white shadow' : 'text-gray-500 hover:bg-gray-200'}`}
+                      >
+                          Lateral
+                      </button>
+                      <button
+                          onClick={() => setCarViewPerspective('rear')}
+                          className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${carViewPerspective === 'rear' ? 'bg-orange-500/90 text-white shadow' : 'text-gray-500 hover:bg-gray-200'}`}
+                      >
+                          Trasera
+                      </button>
+                  </div>
+              </div>
+            )}
             
             {sceneType === 'interior' && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">2. Opciones de Interior</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                  <div>
-                      <label htmlFor="kilometers" className="text-gray-600 mb-2 font-medium block">Kilometraje (Opcional)</label>
-                      <input
-                          id="kilometers"
-                          type="text"
-                          value={kilometers}
-                          onChange={(e) => setKilometers(e.target.value)}
-                          placeholder="EJ: 95000"
-                          className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
-                      />
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    <label htmlFor="extreme-clean" className="flex items-center cursor-pointer">
-                      <div className="relative">
-                        <input 
-                          type="checkbox" 
-                          id="extreme-clean" 
-                          className="sr-only" 
-                          checked={isExtremeClean}
-                          onChange={() => setIsExtremeClean(!isExtremeClean)}
-                        />
-                        <div className="block bg-gray-200 w-14 h-8 rounded-full"></div>
-                        <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-sm ${isExtremeClean ? 'transform translate-x-6 bg-gradient-to-r from-orange-400 to-pink-500' : ''}`}></div>
-                      </div>
-                      <div className="ml-3 text-gray-700 font-medium">
-                        Limpieza Extrema
-                      </div>
-                    </label>
+              <>
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">2. Tipo de Vista Interior</h2>
+                  <div className="flex mt-4 rounded-lg bg-gray-100 p-1">
+                    <button
+                        onClick={() => setInteriorViewType('general')}
+                        className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${interiorViewType === 'general' ? 'bg-white text-orange-600 shadow' : 'text-gray-500 hover:bg-gray-200'}`}
+                    >
+                        Vista General
+                    </button>
+                    <button
+                        onClick={() => setInteriorViewType('detail')}
+                        className={`w-full py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-300 ${interiorViewType === 'detail' ? 'bg-white text-orange-600 shadow' : 'text-gray-500 hover:bg-gray-200'}`}
+                    >
+                        Cuentakilómetros / Detalle
+                    </button>
                   </div>
                 </div>
-              </div>
+
+                <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">3. Opciones de Interior</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <label htmlFor="kilometers" className="text-gray-600 mb-2 font-medium block">Kilometraje (Opcional)</label>
+                        <input
+                            id="kilometers"
+                            type="text"
+                            value={kilometers}
+                            onChange={(e) => setKilometers(e.target.value)}
+                            placeholder="EJ: 95000"
+                            className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        />
+                    </div>
+                    <div className="flex flex-col justify-center">
+                      <label htmlFor="extreme-clean" className="flex items-center cursor-pointer">
+                        <div className="relative">
+                          <input 
+                            type="checkbox" 
+                            id="extreme-clean" 
+                            className="sr-only" 
+                            checked={isExtremeClean}
+                            onChange={() => setIsExtremeClean(!isExtremeClean)}
+                          />
+                          <div className="block bg-gray-200 w-14 h-8 rounded-full"></div>
+                          <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform shadow-sm ${isExtremeClean ? 'transform translate-x-6 bg-gradient-to-r from-orange-400 to-pink-500' : ''}`}></div>
+                        </div>
+                        <div className="ml-3 text-gray-700 font-medium">
+                          Limpieza Extrema
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
 
             {sceneType === 'exterior' && (
               <>
                 <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">2. Matrícula (Opcional)</h2>
+                  <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">3. Matrícula (Opcional)</h2>
                   <input
                       id="license-plate"
                       type="text"
@@ -269,7 +306,7 @@ const App: React.FC = () => {
                   />
                 </div>
                 <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">3. Elige la Escena de Fondo</h2>
+                  <h2 className="text-xl font-semibold mb-4 text-gray-700 tracking-wide border-b border-gray-200 pb-3">4. Elige la Escena de Fondo</h2>
                   <div className="flex mt-4 rounded-lg bg-gray-100 p-1">
                     <button
                       onClick={() => setBackgroundInputMethod('upload')}
